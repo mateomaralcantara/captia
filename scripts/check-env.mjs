@@ -31,6 +31,7 @@ section("1. Archivo .env");
 if (!existsSync(envPath)) {
   bad(`No existe ${envPath}`, "Copia .env.example a .env en la raíz del proyecto (Copy-Item .env.example .env)");
   finish();
+  process.exit(1);
 }
 ok(`Encontrado: ${envPath}`);
 
@@ -204,8 +205,10 @@ function finish() {
   console.log("");
   if (problems === 0) {
     console.log(warnings ? `✔ Configuración correcta, con ${warnings} aviso(s).` : "✔ Todo correcto.");
-    process.exit(0);
+  } else {
+    console.log(`✖ Hay ${problems} problema(s). Corrige lo marcado con ✖ y vuelve a ejecutar: pnpm run check`);
   }
-  console.log(`✖ Hay ${problems} problema(s). Corrige lo marcado con ✖ y vuelve a ejecutar: pnpm run check`);
-  process.exit(1);
+  // exitCode en lugar de process.exit(): en Windows, salir con conexiones HTTP aún cerrándose
+  // provoca «Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)» en Node 24.
+  process.exitCode = problems === 0 ? 0 : 1;
 }
