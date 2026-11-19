@@ -16,7 +16,7 @@ export default async function OverviewPage() {
     return (
       <>
         <PageHeader title={t.overview.title} />
-        <InfoNote>{t.overview.noOrg}</InfoNote>
+        <InfoNote>{t.signup.afterSignup}</InfoNote>
       </>
     );
   }

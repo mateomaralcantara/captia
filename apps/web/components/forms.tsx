@@ -9,6 +9,7 @@ import {
   enrollVerifyAction,
   loginAction,
   mfaVerifyAction,
+  signupAction,
   removeMemberAction,
   updateMemberAction,
   updateOrganizationAction,
@@ -43,13 +44,55 @@ export function LoginForm({ t }: { t: Dictionary }) {
       {error ? <ErrorNote message={error} /> : null}
       <div>
         <label className="label" htmlFor="email">{t.common.email}</label>
-        <input className="input" id="email" name="email" type="email" autoComplete="username" required />
+        <input className="input" id="email" name="email" type="email" autoComplete="username" required defaultValue={state.data?.email ?? ""} />
       </div>
       <div>
         <label className="label" htmlFor="password">{t.login.password}</label>
         <input className="input" id="password" name="password" type="password" autoComplete="current-password" required />
       </div>
       <Submit className="btn w-full">{t.login.submit}</Submit>
+    </form>
+  );
+}
+
+function signupError(t: Dictionary, code?: string): string | null {
+  if (!code) return null;
+  if (code === "not_configured") return t.login.notConfigured;
+  if (code === "unreachable") return t.login.unreachable;
+  return (t.signup as Record<string, string>)[code] ?? t.signup.generic;
+}
+
+export function SignupForm({ t }: { t: Dictionary }) {
+  const [state, action] = useActionState(signupAction, initial);
+  if (state.data?.pending === "confirm_email") {
+    return (
+      <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+        {t.signup.checkEmail}
+      </p>
+    );
+  }
+  const error = signupError(t, state.error);
+  return (
+    <form action={action} className="space-y-4">
+      {error ? <ErrorNote message={error} /> : null}
+      <div>
+        <label className="label" htmlFor="signup-name">{t.signup.displayName}</label>
+        <input className="input" id="signup-name" name="displayName" autoComplete="name" maxLength={80} defaultValue={state.data?.displayName ?? ""} />
+      </div>
+      <div>
+        <label className="label" htmlFor="signup-email">{t.common.email}</label>
+        <input className="input" id="signup-email" name="email" type="email" autoComplete="email" required maxLength={254} defaultValue={state.data?.email ?? ""} />
+      </div>
+      <div>
+        <label className="label" htmlFor="signup-password">{t.signup.password}</label>
+        <input className="input" id="signup-password" name="password" type="password" autoComplete="new-password" required minLength={8} maxLength={72} aria-describedby="signup-password-hint" />
+        <p id="signup-password-hint" className="mt-1 text-xs text-slate-500">{t.signup.passwordHint}</p>
+      </div>
+      <div>
+        <label className="label" htmlFor="signup-password-confirm">{t.signup.passwordConfirm}</label>
+        <input className="input" id="signup-password-confirm" name="passwordConfirm" type="password" autoComplete="new-password" required minLength={8} maxLength={72} />
+      </div>
+      <Submit className="btn w-full">{t.signup.submit}</Submit>
     </form>
   );
 }

@@ -25,5 +25,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Todo excepto login/logout, recursos estáticos y archivos de Next.
-  matcher: ["/((?!login|logout|_next/static|_next/image|favicon.ico|icon.svg).*)"],
+  matcher: ["/((?!login|logout|registro|_next/static|_next/image|favicon.ico|icon.svg).*)"],
 };

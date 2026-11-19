@@ -2,7 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AddMemberSchema, CreateOrganizationSchema, UpdateMemberSchema, UpdateOrganizationSchema } from "@captia/validation";
 import { api, errorCode } from "@/lib/server";
@@ -29,21 +29,74 @@ const writer = (store: CookieStore) => ({ cookies: { set: (n: string, v: string,
 export async function loginAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
-  if (!email || !password) return { error: "invalid" };
+  if (!email || !password) return { error: "invalid", data: { email } };
 
   let session: SessionTokens;
   try {
     session = await gotrue<SessionTokens>("/token?grant_type=password", { method: "POST", body: { email, password } });
   } catch (error) {
-    if (error instanceof AuthError && error.reason === "not_configured") return { error: "not_configured" };
-    if (error instanceof AuthError && error.reason === "unreachable") return { error: "unreachable" };
-    return { error: "invalid" };
+    if (error instanceof AuthError && error.reason === "not_configured") return { error: "not_configured", data: { email } };
+    if (error instanceof AuthError && error.reason === "unreachable") return { error: "unreachable", data: { email } };
+    return { error: "invalid", data: { email } };
   }
   const store = await cookies();
   setSessionCookies(writer(store), session);
 
   const hasVerifiedFactor = (session.user?.factors ?? []).some((f) => f.status === "verified");
   if (hasVerifiedFactor && decodeClaims(session.access_token)?.aal !== "aal2") redirect("/login/mfa");
+  redirect("/");
+}
+
+const SIGNUP_ERRORS: Record<string, string> = {
+  user_already_exists: "user_already_exists",
+  email_exists: "user_already_exists",
+  weak_password: "weak_password",
+  signup_disabled: "signup_disabled",
+  email_provider_disabled: "signup_disabled",
+  over_email_send_rate_limit: "rate_limited",
+  over_request_rate_limit: "rate_limited",
+  "429": "rate_limited",
+  email_address_invalid: "invalidEmail",
+  validation_failed: "invalidEmail",
+  not_configured: "not_configured",
+  unreachable: "unreachable",
+};
+
+/**
+ * Alta de cuenta en Supabase Auth. Si el proyecto exige confirmar el correo, Supabase envía el
+ * enlace y no hay sesión hasta confirmarlo; si no, entra directamente. La cuenta nueva no pertenece
+ * a ninguna organización ni tiene permisos: un administrador debe añadirla.
+ */
+export async function signupAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const password = String(form.get("password") ?? "");
+  const confirm = String(form.get("passwordConfirm") ?? "");
+  const displayName = String(form.get("displayName") ?? "").trim().slice(0, 80);
+
+  // Tras un error, el formulario se vacía (React 19): se devuelven correo y nombre para repoblarlo.
+  const keep = { email, displayName };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return { error: "invalidEmail", data: keep };
+  if (password.length < 8 || password.length > 72) return { error: "weak_password", data: keep };
+  if (password !== confirm) return { error: "mismatch", data: keep };
+
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? (process.env.NODE_ENV === "production" ? "https" : "http");
+  const redirectTo = host ? `${proto}://${host}/login?confirmado=1` : undefined;
+
+  let session: SessionTokens;
+  try {
+    session = await gotrue<SessionTokens>(
+      `/signup${redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ""}`,
+      { method: "POST", body: { email, password, data: displayName ? { display_name: displayName } : {} } },
+    );
+  } catch (error) {
+    const reason = error instanceof AuthError ? (SIGNUP_ERRORS[error.reason] ?? (error.status === 429 ? "rate_limited" : "generic")) : "generic";
+    return { error: reason, data: keep };
+  }
+
+  if (!session.access_token) return { ok: true, data: { pending: "confirm_email" } };
+  setSessionCookies(writer(await cookies()), session);
   redirect("/");
 }
 

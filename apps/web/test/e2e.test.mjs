@@ -66,6 +66,7 @@ function start(cmd, args, env, cwd) {
 // --- Doble de Supabase Auth -------------------------------------------------------------------
 const accounts = new Map(); // email -> { id, password, aal }
 const refreshTokens = new Map();
+const signupRedirects = [];
 let authUrl;
 
 async function issue(account) {
@@ -96,6 +97,21 @@ const fakeAuth = createServer(async (req, res) => {
   if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "refresh_token") {
     const account = refreshTokens.get(body.refresh_token);
     return account ? send(200, await issue(account)) : send(400, { error_code: "refresh_token_not_found" });
+  }
+  if (url.pathname === "/auth/v1/signup") {
+    // Como GoTrue: correo duplicado → 422; si el proyecto exige confirmación, no hay sesión.
+    const email = String(body.email).toLowerCase();
+    if (accounts.has(email)) return send(422, { error_code: "user_already_exists" });
+    if (String(body.password).length < 8) return send(422, { error_code: "weak_password" });
+    const { rows } = await db.query(
+      "insert into auth.users (email, raw_user_meta_data) values ($1, $2) returning id",
+      [email, JSON.stringify(body.data ?? {})],
+    );
+    const acc = { id: rows[0].id, email, password: body.password, aal: "aal1" };
+    accounts.set(email, acc);
+    signupRedirects.push(url.searchParams.get("redirect_to"));
+    if (email.startsWith("confirmar")) return send(200, { id: acc.id, email, confirmation_sent_at: new Date().toISOString() });
+    return send(200, await issue(acc));
   }
   if (url.pathname === "/auth/v1/user") {
     const claims = decodeJwt(String(req.headers.authorization).replace("Bearer ", ""));
@@ -286,5 +302,59 @@ test("los módulos sin backend muestran su estado real, sin datos simulados; el 
   await shot(page, "04-modulo-pendiente");
   await page.getByRole("button", { name: "English" }).click();
   await page.getByRole("link", { name: "Overview" }).waitFor();
+  await page.close();
+});
+
+test("crear cuenta: alta con sesión inmediata, correo duplicado y confirmación por correo", async () => {
+  const page = await browser.newPage();
+  await page.goto(`${webUrl}/login`);
+  await page.getByRole("link", { name: "Crear cuenta" }).click();
+  await page.waitForURL(`${webUrl}/registro`);
+
+  const email = `nuevo-${randomUUID().slice(0, 6)}@e2e.captia.invalid`;
+  await page.getByLabel("Nombre (opcional)").fill("Persona Nueva");
+  await page.getByLabel("Correo").fill(email);
+  await page.getByLabel("Contraseña", { exact: true }).fill("clave-segura-123");
+  await page.getByLabel("Repite la contraseña").fill("otra-distinta-123");
+  await page.getByRole("button", { name: "Crear cuenta" }).click();
+  await page.getByText("Las contraseñas no coinciden.").waitFor();
+  // Tras el error se conservan correo y nombre; las contraseñas se vuelven a escribir.
+  assert.equal(await page.getByLabel("Correo").inputValue(), email);
+  assert.equal(await page.getByLabel("Nombre (opcional)").inputValue(), "Persona Nueva");
+  await page.getByLabel("Contraseña", { exact: true }).fill("clave-segura-123");
+  await page.getByLabel("Repite la contraseña").fill("clave-segura-123");
+  await page.getByRole("button", { name: "Crear cuenta" }).click();
+  await page.waitForURL(`${webUrl}/`);
+  await page.getByText("Tu cuenta no pertenece aún a ninguna organización").waitFor();
+  await shot(page, "05-cuenta-creada");
+  const profile = (await db.query("select display_name from core.profiles where email = $1", [email])).rows[0];
+  assert.equal(profile.display_name, "Persona Nueva");
+  assert.match(signupRedirects.at(-1), /\/login\?confirmado=1$/);
+
+  // La cuenta nueva no tiene permisos: no ve organizaciones.
+  await page.goto(`${webUrl}/clientes`);
+  assert.equal(await page.locator("table a").count(), 0);
+  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await page.waitForURL(`${webUrl}/login`);
+
+  // Correo ya registrado.
+  await page.goto(`${webUrl}/registro`);
+  await page.getByLabel("Correo").fill(email);
+  await page.getByLabel("Contraseña", { exact: true }).fill("clave-segura-123");
+  await page.getByLabel("Repite la contraseña").fill("clave-segura-123");
+  await page.getByRole("button", { name: "Crear cuenta" }).click();
+  await page.getByText("Ya existe una cuenta con ese correo").waitFor();
+
+  // Proyecto con confirmación de correo: no hay sesión, se pide revisar el correo.
+  await page.goto(`${webUrl}/registro`);
+  await page.getByLabel("Correo").fill(`confirmar-${randomUUID().slice(0, 6)}@e2e.captia.invalid`);
+  await page.getByLabel("Contraseña", { exact: true }).fill("clave-segura-123");
+  await page.getByLabel("Repite la contraseña").fill("clave-segura-123");
+  await page.getByRole("button", { name: "Crear cuenta" }).click();
+  await page.getByText("Te enviamos un correo de confirmación").waitFor();
+  await shot(page, "06-confirmar-correo");
+
+  await page.goto(`${webUrl}/login?confirmado=1`);
+  await page.getByText("Correo confirmado. Ya puedes iniciar sesión.").waitFor();
   await page.close();
 });

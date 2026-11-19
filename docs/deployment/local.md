@@ -26,6 +26,16 @@ cp .env.example .env
    (o ejecuta `supabase/migrations/20261119000100_core.sql` en el editor SQL).
 3. En `.env`: `DATABASE_URL` (Settings → Database), `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`.
 4. Auth → Providers → Email activado; Auth → MFA → TOTP activado.
+5. Registro de cuentas (`/registro` en el panel):
+   - Authentication → Sign In / Providers → **Allow new users to sign up** activado (si lo desactivas,
+     el panel muestra «registro desactivado»).
+   - **Confirm email** activado (recomendado): el usuario recibe un enlace y luego inicia sesión.
+     Añade `http://localhost:3000/login` (y tu dominio en producción) en Authentication → URL
+     Configuration → **Redirect URLs** para que el enlace vuelva al panel.
+   - El correo integrado de Supabase tiene un límite de pocos envíos por hora: para uso real configura
+     un SMTP propio en Authentication → Emails → SMTP Settings.
+   - Una cuenta nueva no pertenece a ninguna organización ni tiene permisos: un administrador la añade
+     desde Clientes → organización → Añadir miembro.
 
 ### Opción B: Supabase local (Docker)
 
