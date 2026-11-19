@@ -49,6 +49,8 @@ docs/               Arquitectura, API, despliegue, seguridad, operaciones
 
 ## Documentación
 
+- [Prototipo visual del producto completo](docs/prototipo/README.md) (maqueta con datos de ejemplo; abre `docs/prototipo/captia-prototipo.html`)
+
 - [Entrega 0 · Discovery](docs/operations/discovery-entrega-0.md)
 - [Arquitectura](docs/architecture/overview.md) · [Decisiones (ADR)](docs/architecture/decisions.md)
 - [API](docs/api/README.md) · [Seguridad](docs/security/model.md)

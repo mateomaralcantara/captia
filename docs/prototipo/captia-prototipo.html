@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CAPTIA Control · Prototipo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: consola de operaciones — barra lateral fija oscura + área de trabajo; cada módulo es una vista (#hash). */
+:root {
+  --ink: #071318;          /* barra lateral */
+  --ink-2: #0c1e26;
+  --ink-3: #13303b;
+  --side-fg: #b8cdd4;
+  --bg: #f3f7f8;
+  --surface: #ffffff;
+  --line: #dbe5e8;
+  --fg: #0f1f25;
+  --muted: #5b6f76;
+  --brand: #0e7490;
+  --brand-strong: #155e75;
+  --brand-soft: #e0f4f8;
+  --ok: #047857; --ok-bg: #d8f3e8;
+  --warn: #a16207; --warn-bg: #fdf0cc;
+  --bad: #b42318; --bad-bg: #fde3e0;
+  --idle: #4b5d64; --idle-bg: #e6edef;
+  --info: #5b3fc4; --info-bg: #ebe5fc;
+  --demo: #92400e; --demo-bg: #fff3d6; --demo-line: #f3cf7a;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #081419; --surface: #0e2029; --line: #1c3743; --fg: #e3eef1; --muted: #8fa6ad;
+    --brand: #22b8d6; --brand-strong: #67d4ea; --brand-soft: #0f2f3a;
+    --ok: #4ade9b; --ok-bg: #0f3326; --warn: #f5c451; --warn-bg: #3a2c0b; --bad: #ff8a7a; --bad-bg: #3d1611;
+    --idle: #a9bcc2; --idle-bg: #1a3039; --info: #b7a6ff; --info-bg: #261e48;
+    --demo: #fcd58a; --demo-bg: #2f2409; --demo-line: #6b5216;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #081419; --surface: #0e2029; --line: #1c3743; --fg: #e3eef1; --muted: #8fa6ad;
+  --brand: #22b8d6; --brand-strong: #67d4ea; --brand-soft: #0f2f3a;
+  --ok: #4ade9b; --ok-bg: #0f3326; --warn: #f5c451; --warn-bg: #3a2c0b; --bad: #ff8a7a; --bad-bg: #3d1611;
+  --idle: #a9bcc2; --idle-bg: #1a3039; --info: #b7a6ff; --info-bg: #261e48;
+  --demo: #fcd58a; --demo-bg: #2f2409; --demo-line: #6b5216;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+.app { display: flex; min-height: 100%; }
+aside { width: 248px; flex-shrink: 0; background: var(--ink); color: var(--side-fg); position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 18px 12px 24px max(12px, env(safe-area-inset-left, 0px)); }
+.logo { font-family: var(--font-display); font-weight: 700; font-size: 19px; color: #fff; padding: 2px 10px 16px; letter-spacing: -0.01em; }
+.logo span { color: #22b8d6; }
+.nav-group { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; color: #5f7d87; padding: 14px 10px 6px; }
+nav a { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; color: var(--side-fg); text-decoration: none; font-size: 13.5px; }
+nav a:hover { background: var(--ink-3); color: #fff; }
+nav a.active { background: #0e7490; color: #fff; }
+nav a .count { font-family: var(--font-mono); font-size: 11px; opacity: 0.75; }
+main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; background: var(--surface); border-bottom: 1px solid var(--line); padding-block: 10px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.demo-banner { background: var(--demo-bg); color: var(--demo); border-bottom: 1px solid var(--demo-line); font-size: 13px; padding-block: 8px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.demo-banner strong { font-weight: 600; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 13px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; background: var(--bg); }
+.content { padding-block: 28px 48px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); max-width: 1320px; width: 100%; }
+h1 { font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin: 0 0 12px; }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 72ch; }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 22px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 26px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.kpi .label { color: var(--muted); font-size: 12.5px; }
+.kpi .value { font-family: var(--font-display); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.kpi .note { font-size: 12px; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+td.num, .mono { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.ok { color: var(--ok); background: var(--ok-bg); }
+.warn { color: var(--warn); background: var(--warn-bg); }
+.bad { color: var(--bad); background: var(--bad-bg); }
+.idle { color: var(--idle); background: var(--idle-bg); }
+.info { color: var(--info); background: var(--info-bg); }
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.dev-meta .pill { justify-self: start; }
+.stats b { white-space: nowrap; }
+.dev { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.dev-top { display: flex; gap: 12px; }
+.screen { width: 58px; height: 104px; border-radius: 10px; border: 3px solid #1b2b31; background: linear-gradient(160deg, #0e7490, #13303b 70%); flex-shrink: 0; position: relative; overflow: hidden; }
+.screen.off { background: #10181b; }
+.screen.err { background: linear-gradient(160deg, #7a271a, #1b0d0a); }
+.screen.boot { background: #0b1418; }
+.screen.boot::after { content: "android"; position: absolute; inset: 0; display: grid; place-items: center; color: #9fe6b6; font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.08em; }
+.screen .apps { position: absolute; inset: 14px 7px auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.screen .apps i { aspect-ratio: 1; border-radius: 4px; background: rgba(255,255,255,0.28); }
+.dev-name { font-weight: 600; }
+.dev-meta { font-size: 12.5px; color: var(--muted); display: grid; gap: 2px; min-width: 0; }
+.bar { height: 6px; border-radius: 3px; background: var(--idle-bg); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--brand); border-radius: 3px; }
+.bar.hot > span { background: var(--warn); }
+.stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 11.5px; color: var(--muted); }
+.stats b { display: block; color: var(--fg); font-family: var(--font-mono); font-weight: 500; font-size: 12px; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; }
+button, .btn { font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+button:hover { border-color: var(--brand); color: var(--brand); }
+button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+button.primary:hover { background: var(--brand-strong); color: #fff; }
+button:focus-visible, nav a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.two { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; }
+.section { margin-top: 26px; }
+.notice { border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; color: var(--muted); font-size: 13px; background: var(--surface); margin-top: 16px; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-family: var(--font-mono); font-size: 11.5px; background: var(--brand-soft); color: var(--brand-strong); border-radius: 6px; padding: 2px 7px; }
+.toast { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 13px; max-width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+.menu-btn { display: none; }
+@media (max-width: 900px) {
+  .two { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .app { flex-direction: column; }
+  aside { position: static; width: 100%; height: auto; padding: 12px max(16px, env(safe-area-inset-left, 0px)); }
+  aside nav { display: none; }
+  aside.open nav { display: block; }
+  .menu-btn { display: inline-block; background: var(--ink-3); color: #fff; border-color: var(--ink-3); }
+  .logo-row { display: flex; justify-content: space-between; align-items: center; }
+  .logo { padding: 0; }
+  .topbar, .demo-banner, .content { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+}
+@media (prefers-reduced-motion: no-preference) { nav a, button { transition: background .15s, color .15s, border-color .15s; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside id="side">
+    <div class="logo-row">
+      <div class="logo">CAPTIA <span>Control</span></div>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="nav">Menú</button>
+    </div>
+    <nav id="nav" aria-label="Principal"></nav>
+  </aside>
+  <main>
+    <div class="demo-banner" role="note"><strong>Prototipo con datos de ejemplo.</strong> Así se verá CAPTIA con todos sus módulos activos. Ningún dato es real y los botones no ejecutan acciones.</div>
+    <div class="topbar">
+      <div class="chips">
+        <span class="chip">Organización: <strong>Plataforma (todas)</strong></span>
+        <span class="chip">Plataforma: superadmin</span>
+      </div>
+      <div class="chips"><span>operador@captia.example · MFA ✓</span></div>
+    </div>
+    <div class="content" id="view"></div>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ---------------------------------------------------------------------------------------------
+// DATOS DE EJEMPLO (5 por módulo). Nombres, correos y números son ficticios.
+// Los números usan el rango 555-01xx, reservado para ficción en el plan de numeración NANP.
+// ---------------------------------------------------------------------------------------------
+const orgs = [
+  { id: "ORG-001", name: "Logística Caribe SRL", slug: "logistica-caribe", plan: "Empresarial", status: "active", members: 14, devices: 3, created: "2026-08-02" },
+  { id: "ORG-002", name: "Clínica Santa Elena", slug: "clinica-santa-elena", plan: "Profesional", status: "active", members: 6, devices: 1, created: "2026-08-19" },
+  { id: "ORG-003", name: "Estudio Delta QA", slug: "delta-qa", plan: "Profesional", status: "active", members: 4, devices: 2, created: "2026-09-05" },
+  { id: "ORG-004", name: "Ferretería Los Pinos", slug: "ferreteria-los-pinos", plan: "Básico", status: "suspended", members: 2, devices: 0, created: "2026-09-21" },
+  { id: "ORG-005", name: "Academia Nexo", slug: "academia-nexo", plan: "Gratis", status: "active", members: 3, devices: 1, created: "2026-10-30" },
+];
+const vphones = [
+  { id: "VPHONE-0001", name: "Atención clientes 1", org: "Logística Caribe SRL", state: "running", android: "AOSP 15", cpu: 2, ram: 4, disk: 32, diskUsed: 11.4, cpuPct: 38, ramPct: 61, node: "kvm-sdq-01", ip: "10.20.1.11", last: "hace 1 min", sessions: 1 },
+  { id: "VPHONE-0002", name: "Atención clientes 2", org: "Logística Caribe SRL", state: "running", android: "AOSP 15", cpu: 2, ram: 4, disk: 32, diskUsed: 9.8, cpuPct: 22, ramPct: 54, node: "kvm-sdq-01", ip: "10.20.1.12", last: "hace 3 min", sessions: 0 },
+  { id: "VPHONE-0003", name: "Pruebas app v2.4", org: "Estudio Delta QA", state: "booting", android: "AOSP 14", cpu: 4, ram: 8, disk: 64, diskUsed: 6.1, cpuPct: 71, ramPct: 33, node: "kvm-sdq-02", ip: "10.30.4.21", last: "arrancando", sessions: 0 },
+  { id: "VPHONE-0004", name: "Recepción clínica", org: "Clínica Santa Elena", state: "stopped", android: "AOSP 14", cpu: 2, ram: 3, disk: 16, diskUsed: 7.2, cpuPct: 0, ramPct: 0, node: "kvm-sdq-02", ip: "—", last: "ayer 18:42", sessions: 0 },
+  { id: "VPHONE-0005", name: "Laboratorio clases", org: "Academia Nexo", state: "error", android: "AOSP 15", cpu: 2, ram: 4, disk: 32, diskUsed: 31.6, cpuPct: 0, ramPct: 0, node: "kvm-sdq-01", ip: "—", last: "hace 22 min", sessions: 0, error: "Disco lleno (31,6 de 32 GB)" },
+];
+const physical = [
+  { serial: "R58W31ABC1", model: "Samsung Galaxy A15", android: "Android 14", rack: "Rack A · bahía 01", usb: "hub1-p1", battery: 84, temp: 31.2, state: "connected", org: "Estudio Delta QA" },
+  { serial: "37171JEH2A", model: "Google Pixel 7a", android: "Android 15", rack: "Rack A · bahía 02", usb: "hub1-p2", battery: 100, temp: 29.8, state: "connected", org: "Estudio Delta QA" },
+  { serial: "ZY22HK9QMC", model: "Motorola moto g54", android: "Android 14", rack: "Rack A · bahía 03", usb: "hub1-p3", battery: 47, temp: 36.9, state: "charging", org: "Logística Caribe SRL" },
+  { serial: "8HJV6PZT4L", model: "Xiaomi Redmi Note 13", android: "Android 14", rack: "Rack A · bahía 04", usb: "hub1-p4", battery: 12, temp: 41.5, state: "warning", org: "Sin asignar" },
+  { serial: "R5CX20LMN7", model: "Samsung Galaxy A25", android: "Android 15", rack: "Rack A · bahía 05", usb: "hub1-p5", battery: null, temp: null, state: "disconnected", org: "Sin asignar" },
+];
+const leases = [
+  { device: "VPHONE-0001", org: "Logística Caribe SRL", user: "Ana Peralta", unit: "Mensual", from: "2026-11-01", to: "2026-11-30", used: "212 h", amount: 49.0 },
+  { device: "VPHONE-0002", org: "Logística Caribe SRL", user: "Luis Méndez", unit: "Mensual", from: "2026-11-01", to: "2026-11-30", used: "198 h", amount: 49.0 },
+  { device: "VPHONE-0003", org: "Estudio Delta QA", user: "Equipo QA", unit: "Por hora", from: "2026-11-19 08:00", to: "2026-11-19 18:00", used: "3,2 h", amount: 1.12 },
+  { device: "R58W31ABC1 · Galaxy A15", org: "Estudio Delta QA", user: "Equipo QA", unit: "Por día", from: "2026-11-18", to: "2026-11-20", used: "1,4 días", amount: 17.5 },
+  { device: "VPHONE-0005", org: "Academia Nexo", user: "Prof. Rivas", unit: "Por día", from: "2026-11-19", to: "2026-11-19", used: "0,3 días", amount: 2.4 },
+];
+const extensions = [
+  { ext: "1001", name: "Ana Peralta", org: "Logística Caribe SRL", device: "VPHONE-0001", reg: "registered", ua: "Softphone CAPTIA (Android)", vm: 2, route: "Interna + nacional" },
+  { ext: "1002", name: "Luis Méndez", org: "Logística Caribe SRL", device: "VPHONE-0002", reg: "registered", ua: "Softphone CAPTIA (Android)", vm: 0, route: "Interna + nacional" },
+  { ext: "1003", name: "Recepción", org: "Clínica Santa Elena", device: "VPHONE-0004", reg: "unregistered", ua: "—", vm: 5, route: "Solo interna" },
+  { ext: "1004", name: "Supervisor QA", org: "Estudio Delta QA", device: "Navegador (WebRTC)", reg: "registered", ua: "CAPTIA Control WebRTC", vm: 1, route: "Solo interna" },
+  { ext: "1005", name: "Prof. Rivas", org: "Academia Nexo", device: "App Flutter (iOS)", reg: "registered", ua: "CAPTIA Mobile 1.0", vm: 0, route: "Solo interna" },
+];
+const calls = [
+  { when: "19 nov · 09:41", from: "1001", to: "1002", dir: "Interna", dur: "04:12", mos: 4.3, result: "answered", cost: 0 },
+  { when: "19 nov · 09:15", from: "+1 809 555 0142", to: "1001", dir: "Entrante", dur: "02:48", mos: 4.1, result: "answered", cost: 0 },
+  { when: "19 nov · 08:57", from: "1002", to: "+1 829 555 0177", dir: "Saliente", dur: "01:05", mos: 4.0, result: "answered", cost: 0.04 },
+  { when: "19 nov · 08:30", from: "1004", to: "1003", dir: "Interna", dur: "00:00", mos: null, result: "no-answer", cost: 0 },
+  { when: "18 nov · 17:52", from: "1001", to: "+44 20 7946 0958", dir: "Saliente", dur: "00:00", mos: null, result: "blocked", cost: 0 },
+];
+const numbers = [
+  { e164: "+1 809 555 0101", kind: "VoIP público (DID)", caps: ["Voz"], carrier: "Operador A (SIP trunk)", org: "Logística Caribe SRL", target: "Ext. 1001", state: "active" },
+  { e164: "+1 809 555 0102", kind: "VoIP público (DID)", caps: ["Voz", "SMS"], carrier: "Operador A (SIP trunk)", org: "Clínica Santa Elena", target: "IVR recepción", state: "active" },
+  { e164: "+1 829 555 0103", kind: "Móvil con SIM", caps: ["Voz", "SMS"], carrier: "Operador B (SIM física)", org: "Estudio Delta QA", target: "Pixel 7a · bahía 02", state: "active" },
+  { e164: "+1 849 555 0104", kind: "VoIP público (DID)", caps: ["Voz"], carrier: "Operador A (SIP trunk)", org: "Sin asignar", target: "—", state: "pending" },
+  { e164: "+1 809 555 0105", kind: "VoIP público (DID)", caps: ["Voz"], carrier: "Operador C (en evaluación)", org: "Sin asignar", target: "—", state: "authorization" },
+];
+const mailboxes = [
+  { addr: "telefono001@mmail.example", owner: "VPHONE-0001 · Ana Peralta", org: "Logística Caribe SRL", quota: 2048, used: 734, sent: 41, received: 188, state: "active", last: "Entregado a gmail.com · 09:38" },
+  { addr: "telefono002@mmail.example", owner: "VPHONE-0002 · Luis Méndez", org: "Logística Caribe SRL", quota: 2048, used: 512, sent: 18, received: 96, state: "active", last: "Entregado a outlook.com · 08:12" },
+  { addr: "recepcion@mmail.example", owner: "Clínica Santa Elena", org: "Clínica Santa Elena", quota: 5120, used: 4710, sent: 64, received: 402, state: "warning", last: "Cuota al 92 %" },
+  { addr: "qa-bot@mmail.example", owner: "Estudio Delta QA", org: "Estudio Delta QA", quota: 1024, used: 88, sent: 3, received: 27, state: "active", last: "Diferido por yahoo.com (reintento 2)" },
+  { addr: "ventas@mmail.example", owner: "Ferretería Los Pinos", org: "Ferretería Los Pinos", quota: 1024, used: 301, sent: 0, received: 12, state: "suspended", last: "Suspendido con la organización" },
+];
+const identities = [
+  { id: "ID-001", user: "Ana Peralta", org: "Logística Caribe SRL", device: "VPHONE-0001", mail: "telefono001@mmail.example", ext: "1001", number: "+1 809 555 0101", mfa: true, state: "active" },
+  { id: "ID-002", user: "Luis Méndez", org: "Logística Caribe SRL", device: "VPHONE-0002", mail: "telefono002@mmail.example", ext: "1002", number: "Sin asignar", mfa: true, state: "active" },
+  { id: "ID-003", user: "Recepción clínica", org: "Clínica Santa Elena", device: "VPHONE-0004", mail: "recepcion@mmail.example", ext: "1003", number: "+1 809 555 0102", mfa: false, state: "active" },
+  { id: "ID-004", user: "Supervisor QA", org: "Estudio Delta QA", device: "Pixel 7a (físico)", mail: "qa-bot@mmail.example", ext: "1004", number: "+1 829 555 0103", mfa: true, state: "active" },
+  { id: "ID-005", user: "Vendedor Los Pinos", org: "Ferretería Los Pinos", device: "—", mail: "ventas@mmail.example", ext: "—", number: "Sin asignar", mfa: false, state: "suspended" },
+];
+const networks = [
+  { name: "lc-privada", org: "Logística Caribe SRL", vlan: 120, subnet: "10.20.1.0/24", egress: "NAT compartido", bw: "50 Mbps", latency: 18, loss: 0.0, devices: 2 },
+  { name: "cse-privada", org: "Clínica Santa Elena", vlan: 130, subnet: "10.25.0.0/24", egress: "VPN WireGuard a la clínica", bw: "20 Mbps", latency: 24, loss: 0.1, devices: 1 },
+  { name: "qa-pruebas", org: "Estudio Delta QA", vlan: 140, subnet: "10.30.4.0/24", egress: "IP dedicada", bw: "100 Mbps", latency: 12, loss: 0.0, devices: 3 },
+  { name: "nexo-aula", org: "Academia Nexo", vlan: 150, subnet: "10.40.0.0/24", egress: "NAT compartido", bw: "10 Mbps", latency: 21, loss: 0.4, devices: 1 },
+  { name: "mgmt-plataforma", org: "Plataforma", vlan: 10, subnet: "10.0.0.0/24", egress: "Solo interna", bw: "1 Gbps", latency: 1, loss: 0.0, devices: 5 },
+];
+const nodes = [
+  { name: "kvm-sdq-01", kind: "Nodo KVM", loc: "Santo Domingo · rack 1", cpu: 64, ram: 59, disk: 71, temp: 58, running: 3, capacity: 18, state: "ok" },
+  { name: "kvm-sdq-02", kind: "Nodo KVM", loc: "Santo Domingo · rack 1", cpu: 41, ram: 38, disk: 44, temp: 52, running: 1, capacity: 18, state: "ok" },
+  { name: "usb-rack-a", kind: "Rack USB (5 bahías)", loc: "Santo Domingo · rack 2", cpu: 12, ram: 21, disk: 18, temp: 39, running: 4, capacity: 5, state: "warning" },
+  { name: "pbx-01", kind: "Asterisk 22 (PJSIP)", loc: "VPS · Miami", cpu: 9, ram: 27, disk: 22, temp: null, running: 4, capacity: null, state: "ok" },
+  { name: "mail-01", kind: "Servidor de correo", loc: "VPS · Miami", cpu: 15, ram: 48, disk: 63, temp: null, running: 5, capacity: null, state: "ok" },
+];
+const agents = [
+  { id: "AGENT-02", name: "Device Orchestrator", goal: "Vigilar arranques y estado de dispositivos", last: "hace 4 min", result: "Detectó VPHONE-0005 con disco lleno y propuso ampliar a 64 GB", approval: "pending", cost: 0.03 },
+  { id: "AGENT-04", name: "Voice Engineer", goal: "Calidad de llamadas y registros SIP", last: "hace 12 min", result: "Ext. 1003 sin registrar desde ayer; sin acción", approval: "none", cost: 0.01 },
+  { id: "AGENT-05", name: "Mail Administrator", goal: "Colas, rebotes y reputación", last: "hace 9 min", result: "recepcion@ al 92 % de cuota; recomienda +2 GB", approval: "pending", cost: 0.02 },
+  { id: "AGENT-06", name: "Security Auditor", goal: "Permisos y eventos de seguridad", last: "hace 1 h", result: "2 identidades sin MFA (ID-003, ID-005)", approval: "none", cost: 0.04 },
+  { id: "AGENT-07", name: "Capacity Planner", goal: "Predecir saturación de nodos", last: "hoy 06:00", result: "kvm-sdq-01 llegará al 85 % de RAM en ~19 días", approval: "none", cost: 0.06 },
+];
+const workflows = [
+  { name: "Apagar teléfonos de pruebas a las 20:00", trigger: "Diario · 20:00", scope: "Estudio Delta QA", lastRun: "ayer 20:00", result: "ok", runs: 41 },
+  { name: "Paquete de alta: Android + correo + extensión", trigger: "Al crear identidad", scope: "Todas", lastRun: "hoy 08:14", result: "ok", runs: 12 },
+  { name: "Aviso de cuota de correo al 90 %", trigger: "Evento de correo", scope: "Todas", lastRun: "hoy 07:55", result: "ok", runs: 7 },
+  { name: "Snapshot semanal de teléfonos de atención", trigger: "Domingo · 03:00", scope: "Logística Caribe SRL", lastRun: "dom 03:00", result: "ok", runs: 9 },
+  { name: "Bloquear destinos internacionales de alto costo", trigger: "Llamada saliente", scope: "Todas", lastRun: "ayer 17:52", result: "blocked", runs: 3 },
+];
+const subscriptions = [
+  { org: "Logística Caribe SRL", plan: "Empresarial", items: "3 Android · 5 ext. · 1 DID · 10 buzones", period: "Mensual", renews: "2026-12-01", amount: 289.0, state: "active" },
+  { org: "Clínica Santa Elena", plan: "Profesional", items: "1 Android · 2 ext. · 1 DID · 3 buzones", period: "Mensual", renews: "2026-12-19", amount: 119.0, state: "active" },
+  { org: "Estudio Delta QA", plan: "Profesional + consumo", items: "Android por hora · 2 físicos por día", period: "Mensual + uso", renews: "2026-12-05", amount: 96.5, state: "active" },
+  { org: "Ferretería Los Pinos", plan: "Básico", items: "1 buzón · 1 ext.", period: "Mensual", renews: "Vencida 2026-11-10", amount: 19.0, state: "past_due" },
+  { org: "Academia Nexo", plan: "Gratis", items: "1 Android (1 h/día) · 1 ext.", period: "—", renews: "—", amount: 0, state: "trial" },
+];
+const invoices = [
+  { number: "FAC-2026-000118", ncf: "E310000000118", org: "Logística Caribe SRL", period: "Oct 2026", subtotal: 274.58, itbis: 49.42, state: "paid", method: "Tarjeta" },
+  { number: "FAC-2026-000119", ncf: "E310000000119", org: "Clínica Santa Elena", period: "Oct 2026", subtotal: 100.85, itbis: 18.15, state: "paid", method: "Transferencia" },
+  { number: "FAC-2026-000120", ncf: "E310000000120", org: "Estudio Delta QA", period: "Oct 2026", subtotal: 88.31, itbis: 15.9, state: "open", method: "—" },
+  { number: "FAC-2026-000121", ncf: "E310000000121", org: "Ferretería Los Pinos", period: "Oct 2026", subtotal: 16.1, itbis: 2.9, state: "overdue", method: "—" },
+  { number: "FAC-2026-000122", ncf: "—", org: "Academia Nexo", period: "Oct 2026", subtotal: 0, itbis: 0, state: "void", method: "Plan gratis" },
+];
+const security = [
+  { when: "19 nov · 09:02", event: "Inicio de sesión con MFA", who: "operador@captia.example", detail: "Santo Domingo · Chrome", level: "ok" },
+  { when: "19 nov · 07:48", event: "5 intentos fallidos de contraseña", who: "ventas@ (Los Pinos)", detail: "Bloqueo temporal 15 min", level: "warning" },
+  { when: "18 nov · 22:10", event: "Registro SIP rechazado", who: "Ext. 1003", detail: "IP 203.0.113.44 · credencial inválida ×12", level: "bad" },
+  { when: "18 nov · 17:52", event: "Llamada bloqueada por política", who: "Ext. 1001", detail: "Destino internacional no permitido", level: "warning" },
+  { when: "18 nov · 11:30", event: "Clave de API rotada", who: "Estudio Delta QA", detail: "Clave anterior revocada", level: "ok" },
+];
+const audit = [
+  { when: "19 nov · 09:40", actor: "operador@captia.example", action: "device.started", target: "VPHONE-0003", mfa: "aal2" },
+  { when: "19 nov · 08:14", actor: "operador@captia.example", action: "identity.created", target: "ID-004", mfa: "aal2" },
+  { when: "19 nov · 08:14", actor: "Automatización", action: "mailbox.created", target: "qa-bot@mmail.example", mfa: "—" },
+  { when: "18 nov · 16:05", actor: "admin@logistica-caribe.example", action: "member.added", target: "Luis Méndez (Operador)", mfa: "aal2" },
+  { when: "17 nov · 10:22", actor: "operador@captia.example", action: "organization.suspended", target: "Ferretería Los Pinos", mfa: "aal2" },
+];
+const catalog = [
+  ["Organizaciones, usuarios, roles y auditoría", "Entrega 1", "ok", "Construido hoy"],
+  ["Android virtual + nodos + redes", "Entrega 2", "idle", "Requiere servidor con KVM"],
+  ["Telefonía IP interna", "Entrega 3", "idle", "Requiere Asterisk"],
+  ["Correo propio", "Entrega 4", "idle", "Requiere dominio propio verificado"],
+  ["Identidades y paquete de alta", "Entrega 5", "idle", "Depende de 2, 3 y 4"],
+  ["Android físico", "Entrega 6", "idle", "Requiere rack USB"],
+  ["Planes, suscripciones y facturación", "Entrega 7", "idle", ""],
+  ["Agentes IA y automatizaciones", "Entrega 8", "idle", ""],
+  ["Numeración pública", "Entrega 9", "warn", "Requiere operador autorizado e INDOTEL"],
+];
+
+// ---------------------------------------------------------------------------------------------
+const money = (n) => "US$ " + n.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const pill = (cls, text) => `<span class="pill ${cls}">${esc(text)}</span>`;
+const STATE = {
+  running: ["ok", "En ejecución"], booting: ["info", "Arrancando"], stopped: ["idle", "Apagado"], error: ["bad", "Error"],
+  connected: ["ok", "Conectado"], charging: ["info", "Cargando"], warning: ["warn", "Atención"], disconnected: ["bad", "Desconectado"],
+  registered: ["ok", "Registrada"], unregistered: ["idle", "Sin registrar"],
+  active: ["ok", "Activo"], suspended: ["bad", "Suspendido"], pending: ["warn", "Pendiente del operador"], authorization: ["warn", "Pendiente de autorización"],
+  answered: ["ok", "Contestada"], "no-answer": ["idle", "Sin respuesta"], blocked: ["bad", "Bloqueada"],
+  paid: ["ok", "Pagada"], open: ["info", "Emitida"], overdue: ["bad", "Vencida"], void: ["idle", "Anulada"],
+  past_due: ["bad", "Vencida"], trial: ["info", "Gratis"], ok: ["ok", "Correcto"], bad: ["bad", "Crítico"], none: ["idle", "Sin acción"],
+};
+const st = (k) => pill(...(STATE[k] || ["idle", k]));
+const table = (heads, rows) => `<div class="panel table-wrap"><table><thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+const head = (title, sub, extra = "") => `<div class="head"><div><h1>${title}</h1><p class="sub">${sub}</p></div>${extra}</div>`;
+const kpis = (items) => `<div class="kpis">${items.map(([l, v, n]) => `<div class="kpi"><div class="label">${l}</div><div class="value">${v}</div>${n ? `<div class="note">${n}</div>` : ""}</div>`).join("")}</div>`;
+const bar = (pct, hot) => `<div class="bar${hot ? " hot" : ""}"><span style="width:${Math.min(100, pct)}%"></span></div>`;
+
+const views = {
+  resumen: {
+    label: "Resumen", group: "General",
+    render() {
+      const running = vphones.filter((d) => d.state === "running").length;
+      const errs = vphones.filter((d) => d.state === "error").length + physical.filter((d) => d.state === "disconnected").length;
+      const mrr = subscriptions.filter((s) => s.state === "active").reduce((a, s) => a + s.amount, 0);
+      return head("Resumen", "Vista de plataforma · 19 de noviembre de 2026, 09:45") +
+        kpis([
+          ["Dispositivos totales", vphones.length + physical.length, `${vphones.length} virtuales · ${physical.length} físicos`],
+          ["En ejecución", running + physical.filter((d) => d.state === "connected").length, "virtuales y físicos conectados"],
+          ["Con errores o desconectados", errs, "requieren atención"],
+          ["Extensiones registradas", `${extensions.filter((e) => e.reg === "registered").length}/${extensions.length}`, "1001–1005"],
+          ["Números públicos activos", numbers.filter((n) => n.state === "active").length, `${numbers.filter((n) => n.state !== "active").length} pendientes`],
+          ["Buzones de correo", mailboxes.length, `${mailboxes.reduce((a, m) => a + m.sent, 0)} enviados hoy`],
+          ["Llamadas hoy", calls.filter((c) => c.when.startsWith("19")).length, "MOS medio 4,1"],
+          ["Ingresos recurrentes", money(mrr), "suscripciones activas"],
+        ]) +
+        `<div class="two"><section><h2>Dispositivos que requieren atención</h2>${table(["Dispositivo", "Estado", "Motivo"], [
+          ...vphones.filter((d) => d.state === "error").map((d) => `<tr><td class="mono">${d.id}</td><td>${st(d.state)}</td><td>${esc(d.error)}</td></tr>`),
+          ...physical.filter((d) => ["warning", "disconnected"].includes(d.state)).map((d) => `<tr><td>${esc(d.model)}</td><td>${st(d.state)}</td><td>${d.state === "disconnected" ? "Sin conexión USB desde hace 40 min" : `Batería ${d.battery} % · ${d.temp} °C`}</td></tr>`),
+        ])}</section>
+        <section><h2>Estado de los nodos</h2>${table(["Nodo", "CPU", "RAM", "Estado"], nodes.map((n) => `<tr><td class="mono">${n.name}</td><td class="num">${n.cpu} %</td><td class="num">${n.ram} %</td><td>${st(n.state)}</td></tr>`))}</section></div>`;
+    },
+  },
+  "telefonos-virtuales": {
+    label: "Teléfonos virtuales", group: "Dispositivos", count: () => vphones.length,
+    render() {
+      return head("Teléfonos virtuales", "Android (AOSP) sobre KVM. Sin Google Play, sin SIM ni IMEI: son dispositivos virtuales y así se declaran.", `<button class="primary" data-act="Crear teléfono">+ Crear teléfono</button>`) +
+        `<div class="grid-cards">${vphones.map((d) => `<article class="dev">
+          <div class="dev-top">
+            <div class="screen ${d.state === "stopped" ? "off" : d.state === "error" ? "err" : d.state === "booting" ? "boot" : ""}" aria-hidden="true">${d.state === "running" ? "<div class='apps'>" + "<i></i>".repeat(9) + "</div>" : ""}</div>
+            <div class="dev-meta"><span class="dev-name" style="color:var(--fg)">${esc(d.name)}</span><span class="mono">${d.id}</span>${st(d.state)}<span>${esc(d.org)}</span><span>${d.android} · ${d.cpu} vCPU · ${d.ram} GB</span></div>
+          </div>
+          ${d.error ? `<div class="muted" style="color:var(--bad)">${esc(d.error)}</div>` : ""}
+          <div class="stats"><div>CPU<b>${d.cpuPct} %</b></div><div>RAM<b>${d.ramPct} %</b></div><div>Disco<b>${d.diskUsed}/${d.disk} GB</b></div></div>
+          ${bar(d.diskUsed / d.disk * 100, d.diskUsed / d.disk > 0.85)}
+          <div class="stats"><div>Nodo<b>${d.node}</b></div><div>IP<b>${d.ip}</b></div><div>Actividad<b>${esc(d.last)}</b></div></div>
+          <div class="actions">${d.state === "running" ? `<button class="primary" data-act="Abrir ${d.id}">Abrir</button><button data-act="Reiniciar ${d.id}">Reiniciar</button><button data-act="Apagar ${d.id}">Apagar</button>` : d.state === "stopped" ? `<button class="primary" data-act="Encender ${d.id}">Encender</button>` : d.state === "error" ? `<button class="primary" data-act="Ampliar disco ${d.id}">Ampliar disco</button><button data-act="Ver logs ${d.id}">Ver logs</button>` : `<button data-act="Ver arranque ${d.id}">Ver arranque</button>`}<button data-act="Configurar ${d.id}">Configurar</button></div>
+        </article>`).join("")}</div>`;
+    },
+  },
+  "telefonos-fisicos": {
+    label: "Teléfonos físicos", group: "Dispositivos", count: () => physical.length,
+    render() {
+      return head("Teléfonos físicos", "Teléfonos reales conectados por USB a un rack con agente Linux. El estado lo confirma el agente cada 10 segundos.") +
+        table(["Modelo", "Serial", "Ubicación", "Batería", "Temperatura", "Estado", "Asignado a", ""], physical.map((d) => `<tr>
+          <td><strong>${esc(d.model)}</strong><div class="muted">${d.android}</div></td><td class="mono">${d.serial}</td>
+          <td>${d.rack}<div class="mono muted">${d.usb}</div></td>
+          <td class="num">${d.battery == null ? "—" : d.battery + " %"}</td><td class="num">${d.temp == null ? "—" : d.temp + " °C"}</td>
+          <td>${st(d.state)}</td><td>${esc(d.org)}</td>
+          <td><div class="actions">${d.state === "disconnected" ? `<button data-act="Reiniciar puerto ${d.usb}">Reiniciar puerto USB</button>` : `<button data-act="Abrir ${d.model}">Abrir</button>`}</div></td></tr>`));
+    },
+  },
+  "nube": {
+    label: "Dispositivos en la nube", group: "Dispositivos", count: () => leases.length,
+    render() {
+      return head("Dispositivos en la nube", "Alquiler de teléfonos por hora, día o mes, con límites de consumo por cliente.") +
+        kpis([["Alquileres activos", leases.length], ["Facturado este mes", money(leases.reduce((a, l) => a + l.amount, 0))], ["Disponibles ahora", "1 virtual · 2 físicos"]]) +
+        table(["Dispositivo", "Cliente", "Usuario", "Modalidad", "Desde", "Hasta", "Uso", "Importe"], leases.map((l) => `<tr><td class="mono">${esc(l.device)}</td><td>${esc(l.org)}</td><td>${esc(l.user)}</td><td>${l.unit}</td><td class="num">${l.from}</td><td class="num">${l.to}</td><td class="num">${l.used}</td><td class="num">${money(l.amount)}</td></tr>`));
+    },
+  },
+  "voip": {
+    label: "Telefonía VoIP", group: "Comunicaciones", count: () => extensions.length,
+    render() {
+      return head("Telefonía VoIP", "Extensiones internas de la central propia (Asterisk). Una extensión no es un número público: llamar entre extensiones no necesita operador.", `<button class="primary" data-act="Crear extensión">+ Crear extensión</button>`) +
+        table(["Extensión", "Titular", "Organización", "Dispositivo", "Registro SIP", "Buzón", "Destinos"], extensions.map((e) => `<tr><td class="mono"><strong>${e.ext}</strong></td><td>${esc(e.name)}</td><td>${esc(e.org)}</td><td>${esc(e.device)}<div class="muted">${esc(e.ua)}</div></td><td>${st(e.reg)}</td><td class="num">${e.vm} nuevos</td><td>${e.route}</td></tr>`)) +
+        `<div class="section"><h2>Últimas llamadas</h2>${table(["Fecha", "Origen", "Destino", "Tipo", "Duración", "Calidad (MOS)", "Resultado", "Coste"], calls.map((c) => `<tr><td class="num">${c.when}</td><td class="mono">${c.from}</td><td class="mono">${c.to}</td><td>${c.dir}</td><td class="num">${c.dur}</td><td class="num">${c.mos ?? "—"}</td><td>${st(c.result)}</td><td class="num">${c.cost ? money(c.cost) : "—"}</td></tr>`))}</div>`;
+    },
+  },
+  "numeros": {
+    label: "Números", group: "Comunicaciones", count: () => numbers.length,
+    render() {
+      return head("Números públicos", "Cada número declara quién lo entrega y qué admite. Solo se marca como activo cuando el operador confirma la asignación.") +
+        table(["Número", "Tipo", "Capacidades", "Operador", "Organización", "Destino", "Estado"], numbers.map((n) => `<tr><td class="mono"><strong>${n.e164}</strong></td><td>${n.kind}</td><td><div class="links">${n.caps.map((c) => `<span class="tag">${c}</span>`).join("")}</div></td><td>${esc(n.carrier)}</td><td>${esc(n.org)}</td><td>${esc(n.target)}</td><td>${st(n.state)}</td></tr>`)) +
+        `<p class="notice">CAPTIA no garantiza que un número VoIP sirva para verificar cuentas en servicios de terceros (por ejemplo WhatsApp): depende de las reglas de cada servicio y del tipo real de línea.</p>`;
+    },
+  },
+  "correos": {
+    label: "Correos", group: "Comunicaciones", count: () => mailboxes.length,
+    render() {
+      return head("Correos", "Buzones del servidor de correo propio. El dominio de ejemplo es mmail.example: el dominio real se activa solo cuando su propiedad está verificada.", `<button class="primary" data-act="Crear buzón">+ Crear buzón</button>`) +
+        kpis([["Buzones", mailboxes.length], ["Enviados hoy", mailboxes.reduce((a, m) => a + m.sent, 0)], ["Recibidos hoy", mailboxes.reduce((a, m) => a + m.received, 0)], ["Entregabilidad (30 días)", "98,6 %", "SPF · DKIM · DMARC alineados"]]) +
+        table(["Dirección", "Titular", "Almacenamiento", "Enviados / recibidos", "Último evento de entrega", "Estado"], mailboxes.map((m) => `<tr><td class="mono">${m.addr}</td><td>${esc(m.owner)}</td><td style="min-width:150px"><div class="num">${(m.used / 1024).toFixed(1)} / ${(m.quota / 1024).toFixed(0)} GB</div>${bar(m.used / m.quota * 100, m.used / m.quota > 0.85)}</td><td class="num">${m.sent} / ${m.received}</td><td>${esc(m.last)}</td><td>${st(m.state)}</td></tr>`));
+    },
+  },
+  "identidades": {
+    label: "Identidades", group: "Identidad", count: () => identities.length,
+    render() {
+      return head("Identidades", "CAPTIA ID relaciona a cada persona con su dispositivo, buzón, extensión y número. El correo y el número son atributos verificables, no el identificador.", `<button class="primary" data-act="Crear paquete">+ Paquete de alta</button>`) +
+        table(["Identidad", "Usuario", "Organización", "Dispositivo", "Correo", "Extensión", "Número", "MFA", "Estado"], identities.map((i) => `<tr><td class="mono"><strong>${i.id}</strong></td><td>${esc(i.user)}</td><td>${esc(i.org)}</td><td class="mono">${esc(i.device)}</td><td class="mono">${esc(i.mail)}</td><td class="mono">${i.ext}</td><td class="mono">${i.number}</td><td>${i.mfa ? pill("ok", "Sí") : pill("warn", "No")}</td><td>${st(i.state)}</td></tr>`));
+    },
+  },
+  "redes": {
+    label: "Redes", group: "Infraestructura", count: () => networks.length,
+    render() {
+      return head("Redes", "Cada organización tiene su red aislada. Una IP distinta no convierte un dispositivo en físico ni le da identidad móvil.") +
+        table(["Perfil", "Organización", "VLAN", "Subred", "Salida a internet", "Ancho de banda", "Latencia", "Pérdida", "Dispositivos"], networks.map((n) => `<tr><td class="mono"><strong>${n.name}</strong></td><td>${esc(n.org)}</td><td class="num">${n.vlan}</td><td class="mono">${n.subnet}</td><td>${n.egress}</td><td class="num">${n.bw}</td><td class="num">${n.latency} ms</td><td class="num">${n.loss.toFixed(1)} %</td><td class="num">${n.devices}</td></tr>`));
+    },
+  },
+  "infraestructura": {
+    label: "Infraestructura", group: "Infraestructura", count: () => nodes.length,
+    render() {
+      return head("Infraestructura", "Nodos registrados. La capacidad de cada nodo sale de benchmarks reales, no de una cifra teórica.") +
+        table(["Nodo", "Tipo", "Ubicación", "CPU", "RAM", "Disco", "Temp.", "Carga", "Estado"], nodes.map((n) => `<tr><td class="mono"><strong>${n.name}</strong></td><td>${n.kind}</td><td>${n.loc}</td><td style="min-width:90px"><span class="num">${n.cpu} %</span>${bar(n.cpu, n.cpu > 80)}</td><td style="min-width:90px"><span class="num">${n.ram} %</span>${bar(n.ram, n.ram > 80)}</td><td style="min-width:90px"><span class="num">${n.disk} %</span>${bar(n.disk, n.disk > 80)}</td><td class="num">${n.temp == null ? "—" : n.temp + " °C"}</td><td class="num">${n.capacity ? `${n.running}/${n.capacity} disp.` : `${n.running} servicios`}</td><td>${st(n.state)}</td></tr>`));
+    },
+  },
+  "agentes": {
+    label: "Agentes IA", group: "Inteligencia", count: () => agents.length,
+    render() {
+      return head("Agentes IA", "CAPTIA Harness. Los agentes recomiendan; las acciones que afectan a clientes, dinero o seguridad esperan aprobación humana.") +
+        table(["Agente", "Objetivo", "Última ejecución", "Resultado", "Aprobación", "Coste", ""], agents.map((a) => `<tr><td><strong>${a.name}</strong><div class="mono muted">${a.id}</div></td><td>${a.goal}</td><td>${a.last}</td><td>${esc(a.result)}</td><td>${a.approval === "pending" ? pill("warn", "Esperando aprobación") : st("none")}</td><td class="num">${money(a.cost)}</td><td>${a.approval === "pending" ? `<div class="actions"><button class="primary" data-act="Aprobar ${a.id}">Aprobar</button><button data-act="Rechazar ${a.id}">Rechazar</button></div>` : ""}</td></tr>`));
+    },
+  },
+  "automatizaciones": {
+    label: "Automatizaciones", group: "Inteligencia", count: () => workflows.length,
+    render() {
+      return head("Automatizaciones", "Flujos programados o disparados por eventos, con reintento seguro y auditoría de cada ejecución.") +
+        table(["Flujo", "Disparador", "Alcance", "Última ejecución", "Resultado", "Ejecuciones"], workflows.map((w) => `<tr><td><strong>${esc(w.name)}</strong></td><td>${w.trigger}</td><td>${esc(w.scope)}</td><td>${w.lastRun}</td><td>${w.result === "blocked" ? pill("warn", "Llamada bloqueada") : st(w.result)}</td><td class="num">${w.runs}</td></tr>`));
+    },
+  },
+  "clientes": {
+    label: "Clientes", group: "Negocio", count: () => orgs.length,
+    render() {
+      return head("Clientes", "Organizaciones de la plataforma. Cada una solo ve sus propios datos.", `<button class="primary" data-act="Nueva organización">+ Nueva organización</button>`) +
+        table(["Organización", "Identificador", "Plan", "Miembros", "Dispositivos", "Alta", "Estado"], orgs.map((o) => `<tr><td><strong>${esc(o.name)}</strong><div class="mono muted">${o.id}</div></td><td class="mono">${o.slug}</td><td>${o.plan}</td><td class="num">${o.members}</td><td class="num">${o.devices}</td><td class="num">${o.created}</td><td>${st(o.status)}</td></tr>`));
+    },
+  },
+  "suscripciones": {
+    label: "Suscripciones", group: "Negocio", count: () => subscriptions.length,
+    render() {
+      return head("Suscripciones", "Planes contratados y lo que incluye cada uno.") +
+        table(["Organización", "Plan", "Incluye", "Periodo", "Renovación", "Importe", "Estado"], subscriptions.map((s) => `<tr><td><strong>${esc(s.org)}</strong></td><td>${s.plan}</td><td>${s.items}</td><td>${s.period}</td><td class="num">${s.renews}</td><td class="num">${money(s.amount)}</td><td>${st(s.state)}</td></tr>`));
+    },
+  },
+  "facturacion": {
+    label: "Facturación", group: "Negocio", count: () => invoices.length,
+    render() {
+      const total = invoices.reduce((a, i) => a + i.subtotal + i.itbis, 0);
+      return head("Facturación", "Facturas con comprobante fiscal electrónico (e-CF) e ITBIS del 18 %.") +
+        kpis([["Facturado en octubre", money(total)], ["Cobrado", money(invoices.filter((i) => i.state === "paid").reduce((a, i) => a + i.subtotal + i.itbis, 0))], ["Pendiente o vencido", money(invoices.filter((i) => ["open", "overdue"].includes(i.state)).reduce((a, i) => a + i.subtotal + i.itbis, 0))]]) +
+        table(["Factura", "e-CF", "Cliente", "Periodo", "Subtotal", "ITBIS", "Total", "Cobro", "Estado"], invoices.map((i) => `<tr><td class="mono">${i.number}</td><td class="mono">${i.ncf}</td><td>${esc(i.org)}</td><td>${i.period}</td><td class="num">${money(i.subtotal)}</td><td class="num">${money(i.itbis)}</td><td class="num"><strong>${money(i.subtotal + i.itbis)}</strong></td><td>${i.method}</td><td>${st(i.state)}</td></tr>`));
+    },
+  },
+  "seguridad": {
+    label: "Seguridad", group: "Gobierno",
+    render() {
+      return head("Seguridad", "Eventos de seguridad de la plataforma, telefonía y correo.") +
+        kpis([["Usuarios con MFA", "3 de 5", "identidades de ejemplo"], ["Bloqueos activos", 1], ["Intentos SIP rechazados (24 h)", 12]]) +
+        table(["Fecha", "Evento", "Quién", "Detalle", "Nivel"], security.map((s) => `<tr><td class="num">${s.when}</td><td><strong>${esc(s.event)}</strong></td><td>${esc(s.who)}</td><td>${esc(s.detail)}</td><td>${st(s.level)}</td></tr>`));
+    },
+  },
+  "auditoria": {
+    label: "Auditoría", group: "Gobierno",
+    render() {
+      return head("Auditoría", "Registro inmutable de acciones administrativas, con nivel de autenticación.") +
+        table(["Fecha", "Actor", "Acción", "Objetivo", "MFA"], audit.map((a) => `<tr><td class="num">${a.when}</td><td>${esc(a.actor)}</td><td class="mono">${a.action}</td><td>${esc(a.target)}</td><td class="mono">${a.mfa}</td></tr>`));
+    },
+  },
+  "configuracion": {
+    label: "Configuración", group: "Gobierno",
+    render() {
+      return head("Configuración", "Estado real del proyecto hoy: qué existe y qué falta para que este prototipo sea el producto.") +
+        table(["Módulo", "Entrega", "Estado real hoy", "Requisito"], catalog.map(([m, e, s, r]) => `<tr><td><strong>${m}</strong></td><td>${e}</td><td>${s === "ok" ? pill("ok", "Implementado") : s === "warn" ? pill("warn", "Pendiente de autorización") : pill("idle", "Por construir")}</td><td>${r || "—"}</td></tr>`));
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------------------------
+const nav = document.getElementById("nav");
+let lastGroup = "";
+nav.innerHTML = Object.entries(views).map(([key, v]) => {
+  const g = v.group !== lastGroup ? `<div class="nav-group">${v.group}</div>` : "";
+  lastGroup = v.group;
+  return `${g}<a href="#${key}" data-key="${key}"><span>${v.label}</span>${v.count ? `<span class="count">${v.count()}</span>` : ""}</a>`;
+}).join("");
+
+function show() {
+  const key = (location.hash || "#resumen").slice(1);
+  const view = views[key] || views.resumen;
+  document.getElementById("view").innerHTML = view.render();
+  for (const a of nav.querySelectorAll("a")) a.classList.toggle("active", a.dataset.key === (views[key] ? key : "resumen"));
+  document.title = `${view.label} · CAPTIA Control · Prototipo`;
+  document.getElementById("side").classList.remove("open");
+  document.getElementById("menuBtn").setAttribute("aria-expanded", "false");
+}
+window.addEventListener("hashchange", () => { show(); window.scrollTo(0, 0); });
+show();
+
+let toastTimer;
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-act]");
+  if (!b) return;
+  const t = document.getElementById("toast");
+  t.textContent = `«${b.dataset.act}»: en el prototipo los botones no ejecutan acciones. En el producto real se crearía un trabajo y su estado aparecería aquí.`;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), 4200);
+});
+document.getElementById("menuBtn").addEventListener("click", (e) => {
+  const side = document.getElementById("side");
+  side.classList.toggle("open");
+  e.currentTarget.setAttribute("aria-expanded", String(side.classList.contains("open")));
+});
+</script>
+</body>
+</html>
