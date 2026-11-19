@@ -7,6 +7,12 @@ const config = loadConfig();
 const app = await createApp(config);
 
 // Diagnóstico al arrancar: avisa en consola si la base de datos o la migración no están listas.
+try {
+  const u = new URL(config.database.url);
+  console.log(`Base de datos: ${u.hostname}:${u.port || "5432"} · usuario ${decodeURIComponent(u.username)} · SSL ${config.database.ssl}`);
+} catch {
+  console.warn("⚠ DATABASE_URL no es una URL válida (¿la contraseña tiene @, # o /? cámbiala por una solo con letras y números)");
+}
 const diag = await app.get(DatabaseService).diagnose();
 if (!diag.database.ok) console.warn(`⚠ Base de datos: ${diag.database.detail}`);
 else if (!diag.migrations.ok) console.warn(`⚠ ${diag.migrations.detail}`);
