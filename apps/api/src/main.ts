@@ -11,5 +11,16 @@ const diag = await app.get(DatabaseService).diagnose();
 if (!diag.database.ok) console.warn(`⚠ Base de datos: ${diag.database.detail}`);
 else if (!diag.migrations.ok) console.warn(`⚠ ${diag.migrations.detail}`);
 else console.log("Base de datos y migraciones: OK");
-await app.listen(config.port, config.host);
+try {
+  await app.listen(config.port, config.host);
+} catch (error) {
+  if ((error as { code?: string }).code === "EADDRINUSE") {
+    console.error(
+      `\n✖ El puerto ${config.port} ya está en uso: hay otra API (u otro programa) escuchando.\n` +
+        "  Cierra la otra terminal de la API o cambia API_PORT (y CAPTIA_API_URL) en el .env.\n",
+    );
+    process.exit(1);
+  }
+  throw error;
+}
 console.log(`CAPTIA API escuchando en http://${config.host}:${config.port} (OpenAPI: /v1/openapi.json)`);
