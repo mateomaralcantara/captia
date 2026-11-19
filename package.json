@@ -20,7 +20,8 @@
     "test:db": "scripts/test-db.sh node --test tests/db/*.test.mjs",
     "test:web": "scripts/test-db.sh pnpm --filter @captia/web run test",
     "validate": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build && pnpm run test:web",
-    "bootstrap-admin": "pnpm run build:packages && pnpm --filter @captia/api run bootstrap-admin"
+    "bootstrap-admin": "pnpm run build:packages && pnpm --filter @captia/api run bootstrap-admin",
+    "check": "node scripts/check-env.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

@@ -48,6 +48,16 @@ Usa `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres`,
 `DATABASE_SSL=disable`, `SUPABASE_URL=http://127.0.0.1:54321` y la clave publicable que imprime
 `supabase start`.
 
+## Verificar la configuración
+
+```bash
+pnpm run check
+```
+
+Revisa el `.env` (variables vacías, texto de ejemplo, duplicados, formato del pooler) y prueba las
+conexiones reales: DNS, base de datos, migración, superadministrador, Supabase Auth y la API. No
+imprime contraseñas ni claves.
+
 ## 3. Primer superadministrador
 
 1. Regístrate (o crea el usuario en Auth → Users).

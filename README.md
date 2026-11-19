@@ -58,6 +58,7 @@ docs/               Arquitectura, API, despliegue, seguridad, operaciones
 
 | Comando | Qué hace |
 |---|---|
+| `pnpm run check` | Verifica el `.env` y las conexiones (base de datos, migración, Supabase, API) |
 | `pnpm run dev:api` / `pnpm run dev:web` | Desarrollo |
 | `pnpm run typecheck` | TypeScript estricto en todo el monorepo |
 | `pnpm run lint` | ESLint |
