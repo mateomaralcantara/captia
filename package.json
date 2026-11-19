@@ -1,0 +1,33 @@
+{
+  "name": "captia-os",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CAPTIA OS: plataforma de dispositivos Android, telecomunicaciones, correo, identidades e IA",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter './packages/**' run build && pnpm -r --filter './apps/**' run build",
+    "build:packages": "pnpm -r --filter './packages/**' run build",
+    "dev:api": "pnpm --filter @captia/api run dev",
+    "dev:web": "pnpm --filter @captia/web run dev",
+    "typecheck": "pnpm run build:packages && pnpm -r run typecheck",
+    "lint": "eslint .",
+    "test": "pnpm run build:packages && pnpm -r --filter './packages/**' run test && scripts/test-db.sh pnpm run test:with-db",
+    "test:with-db": "node --test tests/db/*.test.mjs && pnpm --filter @captia/api run test",
+    "test:db": "scripts/test-db.sh node --test tests/db/*.test.mjs",
+    "test:web": "scripts/test-db.sh pnpm --filter @captia/web run test",
+    "validate": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build && pnpm run test:web"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "16.4.6",
+    "globals": "^16.5.0",
+    "pg": "^8.23.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.73.0"
+  }
+}

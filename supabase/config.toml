@@ -1,0 +1,22 @@
+# Configuración mínima para `supabase start` (desarrollo local y CI).
+# Los valores no indicados usan los predeterminados de la CLI de Supabase.
+project_id = "captia"
+
+[api]
+# El esquema `core` NO se expone por la Data API: solo la API de CAPTIA accede a él.
+schemas = ["public", "graphql_public"]
+
+[db]
+major_version = 17
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+enable_signup = true
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.email]
+enable_confirmations = false
