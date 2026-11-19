@@ -81,6 +81,9 @@ importers:
       '@captia/validation':
         specifier: workspace:*
         version: link:../../packages/validation
+      '@next/env':
+        specifier: 16.4.6
+        version: 16.4.6
       next:
         specifier: 16.4.6
         version: 16.4.6(@babel/core@7.29.13)(@types/node@22.20.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)

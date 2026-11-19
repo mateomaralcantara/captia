@@ -41,14 +41,10 @@ Usa `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres`,
 ## 3. Primer superadministrador
 
 1. Regístrate (o crea el usuario en Auth → Users).
-2. Concede el rol (requiere acceso directo a la base de datos; nunca se hace desde la API):
+2. Concede el rol (usa `DATABASE_URL` del `.env` de la raíz; nunca se hace desde la API):
 
 ```bash
-pnpm --filter @captia/api run build
-```
-
-```bash
-pnpm --filter @captia/api run bootstrap-admin -- tu-correo@dominio.com
+pnpm run bootstrap-admin -- tu-correo@dominio.com
 ```
 
 3. Inicia sesión en el panel, ve a **Seguridad** y activa la verificación en dos pasos: sin ella las
@@ -68,11 +64,14 @@ pnpm run dev:api
 pnpm run dev:web
 ```
 
+`dev:api` y `dev:web` compilan antes los paquetes compartidos y leen el único `.env` de la raíz.
+Funcionan igual en PowerShell, macOS y Linux.
+
 Panel: http://localhost:3000 · API: http://127.0.0.1:4000/v1/health · OpenAPI: `/v1/openapi.json`.
 
-En Windows (PowerShell) los mismos comandos funcionan; para las pruebas define antes
-`$env:TEST_DATABASE_URL="postgres://usuario:clave@localhost:5432/postgres"` (base desechable: la
-prueba crea y borra `captia_test`).
+Las pruebas con base de datos (`pnpm test`, `pnpm run validate`) usan un script bash: en Windows
+ejecútalas desde Git Bash o WSL, con `TEST_DATABASE_URL` apuntando a un PostgreSQL desechable (la
+prueba crea y borra `captia_test`). Para usar el panel no hacen falta.
 
 ## 5. Validar
 

@@ -7,11 +7,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput & node --env-file-if-exists=../../.env --watch dist/src/main.js",
+    "dev": "node scripts/dev.mjs",
     "start": "node dist/src/main.js",
-    "test": "tsc -p tsconfig.json && node --test --test-concurrency=1 'dist/test/**/*.test.js'",
+    "test": "tsc -p tsconfig.json && node --test --test-concurrency=1 \"dist/test/**/*.test.js\"",
     "openapi": "tsc -p tsconfig.json && node dist/src/scripts/write-openapi.js",
-    "bootstrap-admin": "node dist/src/scripts/bootstrap-admin.js"
+    "bootstrap-admin": "tsc -p tsconfig.json && node --env-file-if-exists=../../.env dist/src/scripts/bootstrap-admin.js"
   },
   "dependencies": {
     "@captia/validation": "workspace:*",

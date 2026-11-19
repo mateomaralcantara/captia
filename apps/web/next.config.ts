@@ -1,4 +1,9 @@
+import path from "node:path";
+import { loadEnvConfig } from "@next/env";
 import type { NextConfig } from "next";
+
+// Un único .env en la raíz del monorepo (también lo usa la API).
+loadEnvConfig(path.resolve(process.cwd(), "../.."), process.env.NODE_ENV !== "production", console, true);
 
 const isDev = process.env.NODE_ENV !== "production";
 
