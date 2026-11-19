@@ -139,6 +139,80 @@ button:focus-visible, nav a:focus-visible { outline: 2px solid var(--brand); out
   .topbar, .demo-banner, .content { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 }
 @media (prefers-reduced-motion: no-preference) { nav a, button { transition: background .15s, color .15s, border-color .15s; } }
+
+/* Granja de teléfonos: escenario oscuro fijo (look único a propósito, en ambos temas). */
+.stage { background: radial-gradient(1200px 500px at 50% -10%, #12424f 0%, #071318 55%) , #071318; border-radius: 18px; padding: 22px 20px 26px; color: #d7e6ea; }
+.stage-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.stage-head h1 { color: #fff; }
+.stage-head .sub { color: #8fb0b9; }
+.stage-kpis { display: flex; flex-wrap: wrap; gap: 8px; }
+.stage-kpi { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 6px 12px; font-size: 12.5px; color: #9fbac2; }
+.stage-kpi b { color: #fff; font-family: var(--font-display); font-size: 16px; margin-right: 4px; }
+.farm { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; }
+.unit { display: flex; flex-direction: column; align-items: center; gap: 10px; background: none; border: 0; padding: 8px 4px 10px; border-radius: 16px; color: inherit; cursor: pointer; font: inherit; }
+.unit:hover { background: rgba(255,255,255,0.04); }
+.unit.sel { background: rgba(34,184,214,0.12); outline: 1px solid rgba(34,184,214,0.5); }
+.phone { width: 100%; max-width: 190px; aspect-ratio: 9 / 19; border-radius: 30px; background: #02080a; padding: 7px; box-shadow: 0 0 0 1.5px #2a3e45, 0 18px 40px rgba(0,0,0,0.55); position: relative; }
+.phone.big { max-width: 270px; border-radius: 40px; padding: 9px; }
+.scr { position: relative; width: 100%; height: 100%; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; font-size: 9.5px; color: #fff; }
+.phone.big .scr { border-radius: 32px; font-size: 12.5px; }
+.scr .sb { display: flex; justify-content: space-between; padding: 7px 12px 4px; font-size: 0.85em; font-weight: 600; opacity: 0.92; }
+.scr .cam { position: absolute; top: 7px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: #000; box-shadow: 0 0 0 1.5px #1c2a2f; }
+.scr .navb { margin-top: auto; display: flex; justify-content: center; padding: 6px 0 8px; }
+.scr .navb i { width: 34%; height: 3.5px; border-radius: 3px; background: rgba(255,255,255,0.7); }
+.home { background: linear-gradient(165deg, #0e7490 0%, #1d4f63 45%, #13232b 100%); }
+.home .clock { text-align: center; font-family: var(--font-display); font-size: 3.1em; font-weight: 500; margin-top: 10%; letter-spacing: -0.02em; }
+.home .date { text-align: center; opacity: 0.8; }
+.widget { margin: 10% 9% 0; background: rgba(255,255,255,0.14); border-radius: 12px; padding: 7px 9px; display: grid; gap: 2px; }
+.widget small { opacity: 0.75; }
+.grid-apps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 6px; padding: 0 8%; margin-top: auto; margin-bottom: 8%; }
+.app-ic { display: grid; justify-items: center; gap: 3px; font-size: 0.72em; opacity: 0.95; min-width: 0; }
+.app-ic em { font-style: normal; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-ic span { width: 100%; aspect-ratio: 1; border-radius: 28%; display: grid; place-items: center; font-weight: 700; font-size: 1.15em; }
+.call { background: linear-gradient(180deg, #0b2a33, #06151a); text-align: center; }
+.call .who { margin-top: 18%; font-family: var(--font-display); font-size: 1.9em; }
+.call .ava { width: 34%; aspect-ratio: 1; border-radius: 50%; margin: 10% auto 6%; background: #22b8d6; display: grid; place-items: center; font-family: var(--font-display); font-size: 2.2em; color: #04212a; }
+.call .tm { font-family: var(--font-mono); opacity: 0.85; }
+.call .keys { display: flex; justify-content: center; gap: 12%; margin-top: auto; margin-bottom: 10%; }
+.call .keys b { width: 22%; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.12); display: grid; place-items: center; font-weight: 500; font-size: 0.8em; }
+.call .keys b.end { background: #e5484d; }
+.mail { background: #f4f8f9; color: #10232a; }
+.mail .bar2 { background: #0e7490; color: #fff; padding: 8px 10px; font-weight: 600; }
+.mail .row { padding: 6px 10px; border-bottom: 1px solid #dbe5e8; display: grid; gap: 1px; }
+.mail .row small { color: #5b6f76; }
+.mail .row.unread b::before { content: "● "; color: #0e7490; }
+.qa { background: #fbf7ef; color: #2a1f10; }
+.qa .bar2 { background: #b45309; color: #fff; padding: 8px 10px; font-weight: 600; }
+.qa .frm { padding: 10px; display: grid; gap: 7px; }
+.qa .fld { background: #fff; border: 1px solid #e7dcc6; border-radius: 6px; padding: 5px 7px; color: #6d5a3d; }
+.qa .btnq { background: #b45309; color: #fff; text-align: center; border-radius: 6px; padding: 6px; font-weight: 600; }
+.qa .tst { margin: auto 10px 10px; background: #10232a; color: #9fe6b6; border-radius: 6px; padding: 6px 7px; font-family: var(--font-mono); font-size: 0.85em; }
+.boot { background: #000; align-items: center; justify-content: center; gap: 12px; }
+.boot .logo2 { font-family: var(--font-mono); letter-spacing: 0.18em; color: #c8f5d7; font-size: 1.3em; }
+.boot .prog { width: 46%; height: 3px; border-radius: 2px; background: #1f2b2f; overflow: hidden; }
+.boot .prog span { display: block; width: 64%; height: 100%; background: #3ddc84; }
+@media (prefers-reduced-motion: no-preference) { .boot .prog span { animation: load 2.4s ease-in-out infinite alternate; } }
+@keyframes load { from { width: 18%; } to { width: 92%; } }
+.cap { text-align: center; display: grid; gap: 3px; }
+.cap .nm { color: #fff; font-weight: 600; font-size: 13px; }
+.cap .id { font-family: var(--font-mono); font-size: 11.5px; color: #8fb0b9; }
+.cap .mini { font-size: 11.5px; color: #8fb0b9; }
+.console { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 26px; margin-top: 22px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; }
+.ctl-col { display: flex; gap: 12px; align-items: flex-start; }
+.tools { display: grid; gap: 8px; }
+.tools button { width: 112px; text-align: left; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #d7e6ea; }
+.tools button:hover { border-color: #22b8d6; color: #fff; }
+.cinfo { min-width: 0; }
+.cinfo h2 { color: #fff; margin-top: 4px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 6px 0 16px; }
+.fact { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 8px 10px; font-size: 12px; color: #8fb0b9; }
+.fact b { display: block; color: #fff; font-family: var(--font-mono); font-weight: 500; font-size: 12.5px; margin-top: 2px; }
+.log { font-family: var(--font-mono); font-size: 12px; background: #030a0d; border-radius: 10px; padding: 10px 12px; color: #9fbac2; display: grid; gap: 4px; overflow-x: auto; }
+.log span { color: #3ddc84; }
+.stage .actions button { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #e3eef1; }
+.stage .actions button.primary { background: #0e7490; border-color: #0e7490; }
+@media (max-width: 1100px) { .farm { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .farm { grid-template-columns: repeat(2, minmax(0, 1fr)); } .console { grid-template-columns: 1fr; } .ctl-col { flex-direction: column; align-items: center; } .tools { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
@@ -180,9 +254,9 @@ const orgs = [
 const vphones = [
   { id: "VPHONE-0001", name: "Atención clientes 1", org: "Logística Caribe SRL", state: "running", android: "AOSP 15", cpu: 2, ram: 4, disk: 32, diskUsed: 11.4, cpuPct: 38, ramPct: 61, node: "kvm-sdq-01", ip: "10.20.1.11", last: "hace 1 min", sessions: 1 },
   { id: "VPHONE-0002", name: "Atención clientes 2", org: "Logística Caribe SRL", state: "running", android: "AOSP 15", cpu: 2, ram: 4, disk: 32, diskUsed: 9.8, cpuPct: 22, ramPct: 54, node: "kvm-sdq-01", ip: "10.20.1.12", last: "hace 3 min", sessions: 0 },
-  { id: "VPHONE-0003", name: "Pruebas app v2.4", org: "Estudio Delta QA", state: "booting", android: "AOSP 14", cpu: 4, ram: 8, disk: 64, diskUsed: 6.1, cpuPct: 71, ramPct: 33, node: "kvm-sdq-02", ip: "10.30.4.21", last: "arrancando", sessions: 0 },
-  { id: "VPHONE-0004", name: "Recepción clínica", org: "Clínica Santa Elena", state: "stopped", android: "AOSP 14", cpu: 2, ram: 3, disk: 16, diskUsed: 7.2, cpuPct: 0, ramPct: 0, node: "kvm-sdq-02", ip: "—", last: "ayer 18:42", sessions: 0 },
-  { id: "VPHONE-0005", name: "Laboratorio clases", org: "Academia Nexo", state: "error", android: "AOSP 15", cpu: 2, ram: 4, disk: 32, diskUsed: 31.6, cpuPct: 0, ramPct: 0, node: "kvm-sdq-01", ip: "—", last: "hace 22 min", sessions: 0, error: "Disco lleno (31,6 de 32 GB)" },
+  { id: "VPHONE-0003", name: "Pruebas app v2.4", org: "Estudio Delta QA", state: "running", android: "AOSP 14", cpu: 4, ram: 8, disk: 64, diskUsed: 6.1, cpuPct: 71, ramPct: 48, node: "kvm-sdq-02", ip: "10.30.4.21", last: "ahora", sessions: 1 },
+  { id: "VPHONE-0004", name: "Recepción clínica", org: "Clínica Santa Elena", state: "running", android: "AOSP 14", cpu: 2, ram: 3, disk: 16, diskUsed: 7.2, cpuPct: 18, ramPct: 47, node: "kvm-sdq-02", ip: "10.25.0.14", last: "hace 2 min", sessions: 1 },
+  { id: "VPHONE-0005", name: "Laboratorio clases", org: "Academia Nexo", state: "booting", android: "AOSP 15", cpu: 2, ram: 4, disk: 32, diskUsed: 14.2, cpuPct: 64, ramPct: 29, node: "kvm-sdq-01", ip: "10.40.0.15", last: "arrancando", sessions: 0 },
 ];
 const physical = [
   { serial: "R58W31ABC1", model: "Samsung Galaxy A15", android: "Android 14", rack: "Rack A · bahía 01", usb: "hub1-p1", battery: 84, temp: 31.2, state: "connected", org: "Estudio Delta QA" },
@@ -248,7 +322,7 @@ const nodes = [
   { name: "mail-01", kind: "Servidor de correo", loc: "VPS · Miami", cpu: 15, ram: 48, disk: 63, temp: null, running: 5, capacity: null, state: "ok" },
 ];
 const agents = [
-  { id: "AGENT-02", name: "Device Orchestrator", goal: "Vigilar arranques y estado de dispositivos", last: "hace 4 min", result: "Detectó VPHONE-0005 con disco lleno y propuso ampliar a 64 GB", approval: "pending", cost: 0.03 },
+  { id: "AGENT-02", name: "Device Orchestrator", goal: "Vigilar arranques y estado de dispositivos", last: "hace 4 min", result: "VPHONE-0005 tarda 48 s en arrancar (media 31 s); propone moverlo a kvm-sdq-02", approval: "pending", cost: 0.03 },
   { id: "AGENT-04", name: "Voice Engineer", goal: "Calidad de llamadas y registros SIP", last: "hace 12 min", result: "Ext. 1003 sin registrar desde ayer; sin acción", approval: "none", cost: 0.01 },
   { id: "AGENT-05", name: "Mail Administrator", goal: "Colas, rebotes y reputación", last: "hace 9 min", result: "recepcion@ al 92 % de cuota; recomienda +2 GB", approval: "pending", cost: 0.02 },
   { id: "AGENT-06", name: "Security Auditor", goal: "Permisos y eventos de seguridad", last: "hace 1 h", result: "2 identidades sin MFA (ID-003, ID-005)", approval: "none", cost: 0.04 },
@@ -488,20 +562,89 @@ const views = {
   },
 };
 
+
+// ---------------------------------------------------------------------------------------------
+// Granja: los 5 teléfonos con su pantalla. Cada pantalla es una ilustración del estado del ejemplo.
+const APPS = [["Teléfono", "#22c55e", "☎"], ["Mensajes", "#3b82f6", "✉"], ["Correo", "#0e7490", "@"], ["Cámara", "#64748b", "◉"],
+  ["Navegador", "#f59e0b", "◍"], ["Archivos", "#8b5cf6", "▤"], ["Ajustes", "#475569", "⚙"], ["Softphone", "#06b6d4", "1001"]];
+const sb = (t = "09:45") => `<div class="cam"></div><div class="sb"><span>${t}</span><span>▮▮▮ 100%</span></div>`;
+const navb = `<div class="navb"><i></i></div>`;
+const SCREENS = {
+  "VPHONE-0001": () => `<div class="scr home">${sb()}<div class="clock">09:45</div><div class="date">miércoles, 19 nov</div>
+    <div class="widget"><b>Ext. 1001 · registrada</b><small>telefono001@mmail.example</small></div>
+    <div class="grid-apps">${APPS.map(([n, c, g]) => `<div class="app-ic"><span style="background:${c}">${g.length > 2 ? "☏" : g}</span><em>${n}</em></div>`).join("")}</div>${navb}</div>`,
+  "VPHONE-0002": () => `<div class="scr call">${sb()}<div class="who">Ext. 1001</div><div class="tm">Ana Peralta · 04:12</div>
+    <div class="ava">AP</div><div class="tm">Llamada interna</div>
+    <div class="keys"><b>Mute</b><b class="end">Colgar</b><b>Altavoz</b></div>${navb}</div>`,
+  "VPHONE-0003": () => `<div class="scr qa">${sb()}<div class="bar2">Pedidos Delta · v2.4 (prueba)</div>
+    <div class="frm"><div class="fld">Cliente: Prueba 0193</div><div class="fld">Producto: Caja 40×30</div><div class="fld">Cantidad: 12</div><div class="btnq">Enviar pedido</div></div>
+    <div class="tst">✓ 37/40 pruebas<br>▶ test_envio_pedido…</div>${navb}</div>`,
+  "VPHONE-0004": () => `<div class="scr mail">${sb()}<div class="bar2">Bandeja · recepcion@</div>
+    ${[["Laboratorio Central", "Resultados listos · paciente 4471", 1], ["Dra. Rosario", "Cambio de turno del viernes", 1], ["Seguro Vida+", "Autorización 88-1290 aprobada", 0], ["Proveedor Médico", "Factura e-CF de noviembre", 0], ["Sistema", "Copia de seguridad completada", 0]]
+      .map(([a, b, u]) => `<div class="row${u ? " unread" : ""}"><b>${a}</b><small>${b}</small></div>`).join("")}${navb}</div>`,
+  "VPHONE-0005": () => `<div class="scr boot"><div class="logo2">android</div><div class="prog"><span></span></div><div style="opacity:.6">AOSP 15 · arrancando</div></div>`,
+};
+const LOGS = {
+  "VPHONE-0001": ["09:44:58 sesión remota abierta por ana.peralta (control)", "09:41:12 llamada 1001 → 1002 (04:12, MOS 4,3)", "09:30:03 app «Softphone CAPTIA» actualizada a 1.0.3", "08:00:00 encendido programado", "07:59:41 snapshot diario completado (11,4 GB)"],
+  "VPHONE-0002": ["09:41:12 llamada entrante desde ext. 1001", "09:12:40 sesión remota cerrada por luis.mendez", "08:57:03 llamada saliente +1 829 555 0177 (01:05)", "08:00:00 encendido programado", "07:59:44 snapshot diario completado (9,8 GB)"],
+  "VPHONE-0003": ["09:45:10 Appium: 37/40 pruebas superadas", "09:39:02 APK pedidos-delta-2.4.apk instalado (sha256 verificado)", "09:38:40 sesión remota abierta por equipo QA", "09:38:12 arranque completado en 29 s", "09:37:43 encendido solicitado (alquiler por hora)"],
+  "VPHONE-0004": ["09:43:21 correo recibido: «Resultados listos»", "09:20:05 sesión remota abierta por recepción", "08:30:00 llamada desde ext. 1004 sin respuesta", "08:00:00 encendido programado", "ayer 18:42 apagado programado"],
+  "VPHONE-0005": ["09:45:02 arranque en curso (48 s, media 31 s)", "09:44:14 encendido solicitado por prof.rivas", "09:44:14 recursos reservados en kvm-sdq-01", "ayer 20:00 apagado programado", "ayer 19:58 sesión remota cerrada"],
+};
+let selected = "VPHONE-0001";
+const farmView = {
+  label: "Granja de teléfonos", group: "General", count: () => vphones.length,
+  render() {
+    const on = vphones.filter((d) => d.state === "running").length;
+    const d = vphones.find((x) => x.id === selected) || vphones[0];
+    return `<section class="stage" aria-label="Granja de teléfonos">
+      <div class="stage-head"><div><h1>Granja de teléfonos</h1><p class="sub">5 Android virtuales en 2 nodos KVM · pulsa un teléfono para abrir su consola</p></div>
+        <div class="stage-kpis"><span class="stage-kpi"><b>${on}</b>en ejecución</span><span class="stage-kpi"><b>${vphones.length - on}</b>arrancando</span><span class="stage-kpi"><b>2</b>nodos</span><span class="stage-kpi"><b>4</b>sesiones abiertas</span></div></div>
+      <div class="farm">${vphones.map((p) => `<button type="button" class="unit${p.id === selected ? " sel" : ""}" data-phone="${p.id}" aria-pressed="${p.id === selected}">
+        <div class="phone">${SCREENS[p.id]()}</div>
+        <div class="cap"><span class="nm">${esc(p.name)}</span><span class="id">${p.id}</span>${st(p.state)}<span class="mini">${esc(p.org)}</span><span class="mini">CPU ${p.cpuPct} % · RAM ${p.ramPct} %</span></div>
+      </button>`).join("")}</div>
+      <div class="console">
+        <div class="ctl-col"><div class="phone big">${SCREENS[d.id]()}</div>
+          <div class="tools" role="group" aria-label="Controles del dispositivo">
+            ${["Inicio", "Atrás", "Recientes", "Volumen +", "Volumen −", "Girar pantalla", "Captura", "Subir archivo", "Instalar APK", "Reiniciar", "Apagar"].map((t) => `<button type="button" data-act="${t} · ${d.id}">${t}</button>`).join("")}
+          </div></div>
+        <div class="cinfo"><h2>${esc(d.name)} · ${d.id}</h2>${st(d.state)}
+          <div class="facts">
+            <div class="fact">Organización<b>${esc(d.org)}</b></div><div class="fact">Sistema<b>${d.android} · sin GMS</b></div>
+            <div class="fact">Recursos<b>${d.cpu} vCPU · ${d.ram} GB RAM</b></div><div class="fact">Disco<b>${d.diskUsed} de ${d.disk} GB</b></div>
+            <div class="fact">Nodo<b>${d.node}</b></div><div class="fact">IP privada<b>${d.ip}</b></div>
+            <div class="fact">Identidad<b>${(identities.find((i) => i.device === d.id) || { id: "—" }).id}</b></div><div class="fact">Latencia de vídeo<b>${d.state === "running" ? "62 ms · 30 fps" : "—"}</b></div>
+          </div>
+          <h2>Registro de operaciones</h2>
+          <div class="log">${LOGS[d.id].map((l) => `<div><span>›</span> ${esc(l)}</div>`).join("")}</div>
+          <div class="actions" style="margin-top:14px"><button class="primary" type="button" data-act="Pantalla completa · ${d.id}">Pantalla completa</button><button type="button" data-act="Compartir acceso · ${d.id}">Compartir acceso</button><button type="button" data-act="Snapshot · ${d.id}">Crear snapshot</button></div>
+        </div>
+      </div>
+    </section>`;
+  },
+};
+const allViews = { granja: farmView, ...views };
+document.addEventListener("click", (e) => {
+  const u = e.target.closest("button[data-phone]");
+  if (!u) return;
+  selected = u.dataset.phone;
+  show();
+});
 // ---------------------------------------------------------------------------------------------
 const nav = document.getElementById("nav");
 let lastGroup = "";
-nav.innerHTML = Object.entries(views).map(([key, v]) => {
+nav.innerHTML = Object.entries(allViews).map(([key, v]) => {
   const g = v.group !== lastGroup ? `<div class="nav-group">${v.group}</div>` : "";
   lastGroup = v.group;
   return `${g}<a href="#${key}" data-key="${key}"><span>${v.label}</span>${v.count ? `<span class="count">${v.count()}</span>` : ""}</a>`;
 }).join("");
 
 function show() {
-  const key = (location.hash || "#resumen").slice(1);
-  const view = views[key] || views.resumen;
+  const key = (location.hash || "#granja").slice(1);
+  const view = allViews[key] || allViews.granja;
   document.getElementById("view").innerHTML = view.render();
-  for (const a of nav.querySelectorAll("a")) a.classList.toggle("active", a.dataset.key === (views[key] ? key : "resumen"));
+  for (const a of nav.querySelectorAll("a")) a.classList.toggle("active", a.dataset.key === (allViews[key] ? key : "granja"));
   document.title = `${view.label} · CAPTIA Control · Prototipo`;
   document.getElementById("side").classList.remove("open");
   document.getElementById("menuBtn").setAttribute("aria-expanded", "false");
