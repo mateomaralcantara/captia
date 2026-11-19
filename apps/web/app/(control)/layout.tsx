@@ -1,13 +1,45 @@
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { setOrganizationAction, toggleLanguageAction } from "@/app/actions";
 import { NavLinks } from "@/components/nav";
 import { NAV } from "@/lib/nav";
-import { activeOrganizationId, api, currentUser, getLang } from "@/lib/server";
+import { CaptiaApiError } from "@captia/api-client";
+import { ErrorNote } from "@/components/ui";
+import { errorMessage } from "@/lib/i18n";
+import { activeOrganizationId, api, apiBaseUrl, currentUser, getLang } from "@/lib/server";
 import type { ServiceCatalogEntry } from "@captia/validation";
 
 export default async function ControlLayout({ children }: { children: React.ReactNode }) {
   const { lang, t } = await getLang();
-  const me = await currentUser();
+  let me;
+  try {
+    me = await currentUser();
+  } catch (error) {
+    unstable_rethrow(error); // deja pasar las redirecciones de Next (p. ej. sesión caducada → /logout)
+    // La API respondió con error (base de datos sin tablas, sin conexión, API caída…): explicarlo
+    // en lugar de mostrar un fallo técnico.
+    const problem = error instanceof CaptiaApiError ? error.problem : null;
+    const code = problem?.code ?? "internal_error";
+    const base = apiBaseUrl();
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-ink-950 px-4">
+        <div className="w-full max-w-lg space-y-4 rounded-2xl border border-ink-800 bg-white p-8 shadow-xl dark:bg-ink-900">
+          <h1 className="text-xl font-semibold">{t.errors.panelTitle}</h1>
+          <ErrorNote message={errorMessage(t, code)} />
+          {problem?.detail ? <p className="text-sm text-slate-600 dark:text-slate-300">{problem.detail}</p> : null}
+          {base ? (
+            <p className="text-sm text-slate-500">
+              {t.errors.healthHint} <code className="break-all">{base}/v1/health</code>
+            </p>
+          ) : null}
+          <div className="flex gap-3">
+            <Link className="btn" href="/">{t.errors.retry}</Link>
+            <form action="/logout" method="post"><button className="btn-secondary" type="submit">{t.common.logout}</button></form>
+          </div>
+        </div>
+      </main>
+    );
+  }
   const orgId = await activeOrganizationId(me);
   const catalog: ServiceCatalogEntry[] = await (await api())
     .serviceCatalog()

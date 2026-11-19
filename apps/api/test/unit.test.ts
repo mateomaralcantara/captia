@@ -4,6 +4,7 @@ import { SignJWT, exportJWK, generateKeyPair } from "jose";
 import { createServer } from "node:http";
 import { JwtVerifier } from "../src/auth/jwt-verifier.js";
 import { ProblemError, problemFromDatabaseError } from "../src/common/problem.js";
+import { describeDatabaseError } from "../src/database.service.js";
 import { loadConfig } from "../src/config.js";
 import { JWT_SECRET, SUPABASE_URL, tokenFor } from "./helpers.js";
 
@@ -68,6 +69,12 @@ test("traduce errores SQL de CAPTIA a errores HTTP y oculta los desconocidos", (
   assert.equal(problemFromDatabaseError({ code: "42501", message: "permission denied for table x" })?.status, 403);
   assert.equal(problemFromDatabaseError({ code: "XX000", message: "boom" }), null);
   assert.equal(problemFromDatabaseError(new Error("x")), null);
+  // Base de datos sin migración o sin conexión: 503 con explicación, no 500.
+  assert.equal(problemFromDatabaseError({ code: "3F000", message: "schema \"core\" does not exist" })?.status, 503);
+  assert.equal(problemFromDatabaseError({ code: "42883", message: "function core.my_context() does not exist" })?.code, "service_unavailable");
+  assert.equal(problemFromDatabaseError({ code: "28P01", message: "password authentication failed" })?.status, 503);
+  assert.equal(problemFromDatabaseError(new Error("Tenant or user not found"))?.status, 503);
+  assert.equal(problemFromDatabaseError(new Error("timeout exceeded when trying to connect"))?.status, 503);
 });
 
 test("la configuración exige DATABASE_URL y SUPABASE_URL y deriva emisor y JWKS", () => {
@@ -76,4 +83,11 @@ test("la configuración exige DATABASE_URL y SUPABASE_URL y deriva emisor y JWKS
   assert.equal(c.supabase.issuer, "https://abc.supabase.co/auth/v1");
   assert.equal(c.supabase.jwksUrl, "https://abc.supabase.co/auth/v1/.well-known/jwks.json");
   assert.equal(c.supabase.serviceRoleKey, undefined);
+});
+
+test("explica errores de conexión a la base de datos sin filtrar mensajes internos", () => {
+  assert.match(describeDatabaseError({ code: "28P01" }), /contraseña/);
+  assert.match(describeDatabaseError({ code: "ENOTFOUND" }), /Session pooler/);
+  assert.match(describeDatabaseError(new Error("Tenant or user not found")), /postgres\.<ref/);
+  assert.equal(describeDatabaseError(new Error("algo secreto interno")), "Error de conexión con la base de datos");
 });

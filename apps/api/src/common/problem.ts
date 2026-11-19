@@ -58,7 +58,13 @@ function isErrorCode(value: string): value is ErrorCode {
  * es reconocible: entonces se trata como error interno (y no se filtra su mensaje).
  */
 export function problemFromDatabaseError(error: unknown): ProblemError | null {
-  if (typeof error !== "object" || error === null || !("code" in error)) return null;
+  if (typeof error !== "object" || error === null) return null;
+  const rawMessage = String((error as { message?: unknown }).message ?? "");
+  // Errores de conexión del driver/pooler sin SQLSTATE útil.
+  if (/tenant or user not found|timeout exceeded when trying to connect|Connection terminated/i.test(rawMessage)) {
+    return new ProblemError("service_unavailable", "La API no puede conectar con la base de datos (revisa DATABASE_URL)");
+  }
+  if (!("code" in error)) return null;
   const code = String((error as { code: unknown }).code);
   const message = String((error as { message?: unknown }).message ?? "").split(":")[0]!.trim();
 
@@ -80,6 +86,19 @@ export function problemFromDatabaseError(error: unknown): ProblemError | null {
       return new ProblemError("conflict");
     case "22P02": // invalid_text_representation (p. ej. UUID mal formado)
       return new ProblemError("not_found");
+    case "3F000": // invalid_schema_name
+    case "42P01": // undefined_table
+    case "42883": // undefined_function
+      return new ProblemError("service_unavailable", "La base de datos no tiene las tablas de CAPTIA: aplica la migración de supabase/migrations");
+    case "28P01":
+    case "28000":
+    case "3D000":
+    case "ECONNREFUSED":
+    case "ENOTFOUND":
+    case "EAI_AGAIN":
+    case "ETIMEDOUT":
+    case "ENETUNREACH":
+      return new ProblemError("service_unavailable", "La API no puede conectar con la base de datos (revisa DATABASE_URL)");
     default:
       return null;
   }

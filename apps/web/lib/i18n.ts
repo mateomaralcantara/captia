@@ -180,7 +180,12 @@ const es = {
     validation_failed: "Revisa los datos del formulario.",
     not_configured: "Integración pendiente de configuración en el servidor.",
     rate_limited: "Demasiadas solicitudes. Espera un minuto.",
-    api_unreachable: "La API de CAPTIA no responde. Comprueba CAPTIA_API_URL y que el servicio esté en marcha.",
+    api_unreachable: "La API de CAPTIA no responde. Comprueba CAPTIA_API_URL y que `pnpm run dev:api` esté en marcha.",
+    service_unavailable: "La API no puede usar la base de datos.",
+    internal_error: "Error interno de la API. Busca la referencia en la consola de la API.",
+    panelTitle: "El panel no puede cargar tus datos",
+    retry: "Reintentar",
+    healthHint: "Diagnóstico de la API:",
   },
 };
 
@@ -361,7 +366,12 @@ const en: Dictionary = {
     validation_failed: "Check the form data.",
     not_configured: "Integration pending server configuration.",
     rate_limited: "Too many requests. Wait a minute.",
-    api_unreachable: "The CAPTIA API is not responding. Check CAPTIA_API_URL and that the service is running.",
+    api_unreachable: "The CAPTIA API is not responding. Check CAPTIA_API_URL and that `pnpm run dev:api` is running.",
+    service_unavailable: "The API cannot use the database.",
+    internal_error: "Internal API error. Look for the reference in the API console.",
+    panelTitle: "The panel cannot load your data",
+    retry: "Retry",
+    healthHint: "API diagnostics:",
   },
 };
 

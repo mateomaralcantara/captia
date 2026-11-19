@@ -48,6 +48,7 @@ describe("sistema", () => {
     const r = await call(h, "GET", "/v1/health");
     assert.equal(r.status, 200);
     assert.equal(r.body.checks.database.status, "ok");
+    assert.equal(r.body.checks.migrations.status, "ok");
     assert.equal(r.body.checks.invitations.status, "not_configured");
     assert.equal(r.headers.get("x-content-type-options"), "nosniff");
     assert.ok(r.headers.get("x-request-id"));

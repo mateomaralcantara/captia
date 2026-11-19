@@ -31,12 +31,14 @@ export class SystemController {
   @Public()
   @Get("health")
   async health(@Res({ passthrough: true }) res: Response): Promise<Health> {
-    const dbOk = await this.db.ping();
+    const diag = await this.db.diagnose();
+    const ok = diag.database.ok && diag.migrations.ok;
     const health: Health = {
-      status: dbOk ? "ok" : "degraded",
+      status: ok ? "ok" : "degraded",
       version: this.config.version,
       checks: {
-        database: { status: dbOk ? "ok" : "fail" },
+        database: diag.database.ok ? { status: "ok" } : { status: "fail", detail: diag.database.detail ?? "" },
+        migrations: diag.migrations.ok ? { status: "ok" } : { status: "fail", ...(diag.migrations.detail ? { detail: diag.migrations.detail } : {}) },
         auth: {
           status: "ok",
           detail: this.config.supabase.jwtSecret ? "JWT HS256 + JWKS" : "JWKS de Supabase",
@@ -46,7 +48,7 @@ export class SystemController {
           : { status: "not_configured", detail: "Falta SUPABASE_SERVICE_ROLE_KEY" },
       },
     };
-    if (!dbOk) res.status(503);
+    if (!ok) res.status(503);
     return health;
   }
 

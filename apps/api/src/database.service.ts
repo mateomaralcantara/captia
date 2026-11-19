@@ -50,6 +50,27 @@ export class DatabaseService implements OnModuleDestroy {
     }
   }
 
+  /**
+   * Diagnóstico para /v1/health y el arranque: conexión y presencia del esquema de CAPTIA.
+   * Los detalles son categorías genéricas (no se exponen mensajes del servidor de base de datos).
+   */
+  async diagnose(): Promise<{ database: { ok: boolean; detail?: string }; migrations: { ok: boolean; detail?: string } }> {
+    try {
+      const { rows } = await this.pool.query(
+        "select to_regclass('core.organizations') is not null as core, to_regprocedure('core.my_context()') is not null as fn",
+      );
+      const row = rows[0] as { core: boolean; fn: boolean };
+      return {
+        database: { ok: true },
+        migrations: row.core && row.fn
+          ? { ok: true }
+          : { ok: false, detail: "Faltan las tablas de CAPTIA: aplica supabase/migrations/*.sql en Supabase" },
+      };
+    } catch (error) {
+      return { database: { ok: false, detail: describeDatabaseError(error) }, migrations: { ok: false } };
+    }
+  }
+
   async ping(): Promise<boolean> {
     try {
       await this.pool.query("select 1");
@@ -62,4 +83,19 @@ export class DatabaseService implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     await this.pool.end();
   }
+}
+
+/** Traduce errores de conexión a una explicación genérica y útil para el operador. */
+export function describeDatabaseError(error: unknown): string {
+  const code = String((error as { code?: unknown })?.code ?? "");
+  const message = String((error as { message?: unknown })?.message ?? "");
+  if (code === "28P01" || code === "28000") return "Usuario o contraseña de la base de datos incorrectos (revisa DATABASE_URL)";
+  if (code === "3D000") return "La base de datos indicada en DATABASE_URL no existe";
+  if (code === "ENOTFOUND" || code === "EAI_AGAIN") return "No se encuentra el servidor de DATABASE_URL (revisa el host; usa la cadena «Session pooler» de Supabase)";
+  if (code === "ECONNREFUSED" || code === "ETIMEDOUT" || code === "ENETUNREACH" || /timeout/i.test(message)) {
+    return "No se puede conectar con la base de datos (host, puerto o red; usa la cadena «Session pooler» de Supabase)";
+  }
+  if (/ssl|tls|certificate/i.test(message)) return "Error de SSL con la base de datos (prueba DATABASE_SSL=require)";
+  if (/tenant or user not found/i.test(message)) return "Usuario del pooler incorrecto: en Supabase debe ser postgres.<ref-del-proyecto>";
+  return "Error de conexión con la base de datos";
 }
